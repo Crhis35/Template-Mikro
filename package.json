@@ -1,7 +1,11 @@
 {
   "name": "afotest",
-  "version": "0.0.1",
-  "description": "Awesome project developed with TypeORM.",
+  "version": "1.0.0",
+  "description": "Template Mikro-Orm",
+  "main": "index.ts",
+  "repository": "https://github.com/Crhis35/Template-Mikro.git",
+  "author": "Crhistian Caraballo",
+  "license": "MIT",
   "devDependencies": {
     "@types/bcrypt": "^3.0.1",
     "@types/compression": "^1.7.0",
