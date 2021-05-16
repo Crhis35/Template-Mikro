@@ -3,7 +3,7 @@ import 'reflect-metadata';
 import { environment } from './environment';
 import { graphqlUploadExpress } from 'graphql-upload';
 import { buildSchema } from 'type-graphql';
-import { MikroORM } from '@mikro-orm/core';
+import { Dictionary, IPrimaryKey, MikroORM } from '@mikro-orm/core';
 import express from 'express';
 import * as http from 'http';
 
@@ -22,6 +22,8 @@ import { AuthProviderResolver } from './resolver/AuthResolver';
 import { MyContext } from './utils/interfaces/context.interface';
 import { AuthDirective } from './directives/Auth';
 import { HasRoleDirective } from './directives/HasRole';
+import { UserResolver } from './resolver/UserResolver';
+import { AppError } from './utils/services/AppError';
 
 const app = express();
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
@@ -48,7 +50,12 @@ app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
 
 const startApp = async () => {
   try {
-    const orm = await MikroORM.init(ormConfig);
+    const orm = await MikroORM.init({
+      ...ormConfig,
+      findOneOrFailHandler: (entityName: string) => {
+        return new AppError(`${entityName} not found!`, '404');
+      },
+    });
     const migrator = orm.getMigrator();
     const migrations = await migrator.getPendingMigrations();
     if (migrations && migrations.length > 0) {
@@ -61,7 +68,7 @@ const startApp = async () => {
     });
 
     const schema = await buildSchema({
-      resolvers: [AuthProviderResolver],
+      resolvers: [AuthProviderResolver, UserResolver],
     });
 
     SchemaDirectiveVisitor.visitSchemaDirectives(schema, {

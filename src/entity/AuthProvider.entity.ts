@@ -3,8 +3,15 @@ import { Field, Int, ObjectType } from 'type-graphql';
 import { registerEnumType } from 'type-graphql';
 import bycript from 'bcrypt';
 
-import { Entity, Property, Enum, BeforeCreate } from '@mikro-orm/core';
+import {
+  Entity,
+  Property,
+  Enum,
+  BeforeCreate,
+  OneToOne,
+} from '@mikro-orm/core';
 import { Base } from './BaseEntity';
+import { User } from './User.entity';
 
 export enum Role {
   ADMIN = 'Admin',
@@ -55,9 +62,13 @@ export class AuthProvider extends Base {
   })
   verified!: Boolean;
 
-  @Field()
-  @Property({ nullable: true })
-  userId?: string;
+  @Field({ nullable: true })
+  @OneToOne(() => User, (user) => user.auth, {
+    owner: true,
+    orphanRemoval: true,
+    nullable: true,
+  })
+  user?: User;
 
   @Field(() => [Role])
   @Enum({ items: () => Role, array: true, default: [Role.USER] })
@@ -75,7 +86,12 @@ export class AuthProvider extends Base {
 
   @BeforeCreate()
   async generateUuid() {
+    this.owner = this.id;
     this.password = await bycript.hash(this.password, 12);
     this.verifiedCode = ~~(Math.random() * (99999 - 10000) + 10000);
+  }
+
+  async correctPassword(candidatePassword: string) {
+    return await bycript.compare(candidatePassword, this.password || '');
   }
 }

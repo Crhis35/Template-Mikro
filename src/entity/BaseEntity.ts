@@ -14,6 +14,10 @@ export class Base extends BaseEntity<Base, 'id'> {
   @Property()
   createdAt: Date = new Date();
 
+  @Field(() => ID)
+  @Property()
+  owner!: string;
+
   @Field()
   @Property({ onUpdate: () => new Date() })
   updatedAt: Date = new Date();

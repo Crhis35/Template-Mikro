@@ -30,7 +30,7 @@ export const ensureAuthenticated = async (ctx: MyContext) => {
   //3) check if user still exits
   const currUser = await ctx.em
     .getRepository(AuthProvider)
-    .findOne({ id: decoded.id });
+    .findOne({ id: decoded.id }, ['user']);
   if (!currUser)
     throw new AppError('The user belong to this token does not exist', '401');
   ctx.currentUser = currUser;
