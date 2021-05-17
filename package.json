@@ -64,7 +64,7 @@
     "x-xss-protection": "^2.0.0"
   },
   "scripts": {
-    "server": "nodemon ./src --exec ts-node src/index.ts -e ts,graphql"
+    "server": "nodemon ./src --exec ts-node src/index.ts -e ts"
   },
   "mikro-orm": {
     "useTsNode": true,

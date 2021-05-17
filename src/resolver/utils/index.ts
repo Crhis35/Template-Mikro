@@ -52,7 +52,6 @@ export const createSendToken = (auth: AuthProvider, res: any) => {
   if (environment.env === 'production') cookieOptions.secure = true;
 
   res.cookie('jwt', token, cookieOptions);
-  console.log(auth);
   return {
     token,
     auth,
@@ -73,6 +72,7 @@ export async function APIFeatures(
     };
   }
   if (sort) orderBy[sort.field as keyof string] = sort.order === 'ASC' ? 1 : -1;
+
   const [items, count] = await em
     .getRepository(Model)
     .findAndCount(searchQuery, { limit, offset, orderBy });
