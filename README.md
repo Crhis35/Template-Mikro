@@ -14,22 +14,31 @@ NODE_ENV=development
 JWT_SECRET=perreointenso
 JWT_EXPIRES_IN=90d
 EMAIL_FROM=Crhistian
-EMAIL_HOST=smtp.ethereal.email
-EMAIL_PORT=587
-EMAIL_USERNAME=francisco.gislason92@ethereal.email
-EMAIL_PASSWORD=a47G99RgJkGmZFUX9q
+EMAIL_HOST=gmail
+EMAIL_USERNAME=afogata.sas@gmail.com
+EMAIL_PASSWORD=D35ARROLL0@f0g4t4.2021
 ```
 
 ## Installation
 
 ```sh
-npm install && cd client npm install
-npm run dev
+npm install 
 ```
 
 Or
 
 ```sh
-yarn install && cd client yarn install
-yarn dev 
+yarn install 
+```
+
+## Create DB on MySQL
+
+```sh
+npx mikro-orm schema:create -r
+```
+
+## Start project
+
+```sh
+yarn server
 ```

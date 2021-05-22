@@ -24,7 +24,8 @@ export enum Provider {
 }
 
 registerEnumType(Role, {
-  name: 'Role', // this one is mandatory
+  name: 'Role', // this one is mandatory,
+  description: 'Roles of the user',
 });
 registerEnumType(Provider, {
   name: 'Provider', // this one is mandatory
