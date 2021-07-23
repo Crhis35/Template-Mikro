@@ -40,7 +40,7 @@ export class AuthProviderResolver {
       await em.persist(auth).flush();
       return await createSendToken(auth, res);
     } catch (error) {
-      throw new AppError(error.message, '404');
+      // throw new AppError(error.message, '404');
     }
   }
   @Query(() => PaginatedAuthProvider, { nullable: true })
@@ -93,7 +93,7 @@ export class AuthProviderResolver {
 
       return currentUser;
     } catch (error) {
-      throw new AppError(error.message, error.code);
+      // throw new AppError(error.message, error.code);
     }
   }
 }

@@ -64,7 +64,9 @@
     "x-xss-protection": "^2.0.0"
   },
   "scripts": {
-    "server": "nodemon ./src --exec ts-node src/index.ts -e ts"
+    "server": "nodemon ./src --exec ts-node src/index.ts -e ts",
+    "schema:drop": "npx mikro-orm schema:drop -r",
+    "schema:create": "npx mikro-orm schema:create -r"
   },
   "mikro-orm": {
     "useTsNode": true,

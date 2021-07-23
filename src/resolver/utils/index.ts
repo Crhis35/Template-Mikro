@@ -61,14 +61,18 @@ export const createSendToken = (auth: AuthProvider, res: any) => {
 export async function APIFeatures(
   Model: Function,
   em: EntityManager<IDatabaseDriver<Connection>>,
-  { search, sort, limit, offset }: ApiArgs
+  { search, sort, limit, offset }: ApiArgs,
+  id: string | null = null
 ) {
   let searchQuery = {};
   let orderBy: any = {};
 
   if (search) {
+    let owner = {};
+    if (id) owner = { $eq: { owner: id } };
     searchQuery = {
       $or: [{ userName: { $re: search } }],
+      ...owner,
     };
   }
   if (sort) orderBy[sort.field as keyof string] = sort.order === 'ASC' ? 1 : -1;

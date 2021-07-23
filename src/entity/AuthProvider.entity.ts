@@ -1,5 +1,5 @@
 import { IsDate, IsEmail } from 'class-validator';
-import { Field, Int, ObjectType } from 'type-graphql';
+import { Arg, Field, Int, ObjectType } from 'type-graphql';
 import { registerEnumType } from 'type-graphql';
 import bycript from 'bcrypt';
 
@@ -9,9 +9,13 @@ import {
   Enum,
   BeforeCreate,
   OneToOne,
+  OneToMany,
+  Collection,
 } from '@mikro-orm/core';
 import { Base } from './BaseEntity';
 import { User } from './User.entity';
+import { ApiArgs } from '../resolver/input';
+import { Device } from './Device.entity';
 
 export enum Role {
   ADMIN = 'Admin',
@@ -23,9 +27,28 @@ export enum Provider {
   GMAIL = 'Gmail',
 }
 
+export enum PhoneBrands {
+  APPLE = 'APPLE',
+  XIAOMI = 'XIAOMI',
+  SAMSUNG = 'SAMSUNG',
+  NOKIA = 'NOKIA',
+  HUAWEI = 'HUAWEI',
+  BLACKBERRY = 'BLACKBERRY',
+}
+
 registerEnumType(Role, {
   name: 'Role', // this one is mandatory,
   description: 'Roles of the user',
+});
+
+registerEnumType(Provider, {
+  name: 'Provider', // this one is mandatory
+  description: 'Gmail auth or email',
+});
+
+registerEnumType(PhoneBrands, {
+  name: 'PhoneBrands', // this one is mandatory
+  description: 'Phone Brands',
 });
 registerEnumType(Provider, {
   name: 'Provider', // this one is mandatory
@@ -81,6 +104,24 @@ export class AuthProvider extends Base {
   passwordChangedAt?: Date;
 
   @Field()
+  @Property({ nullable: false, default: false })
+  isReported: Boolean = false;
+
+  @Field()
+  @Property({ nullable: false, default: false })
+  isBlocked: Boolean = false;
+
+  @Field(() => [Device], { nullable: true })
+  @OneToMany({
+    entity: () => Device,
+    mappedBy: 'user',
+    orphanRemoval: true,
+  })
+  devices(@Arg('args') args: ApiArgs) {
+    return new Collection<Device>(this);
+  }
+
+  @Field()
   @Property({ nullable: true })
   @IsDate()
   passwordResetExpires?: Date;
@@ -95,4 +136,16 @@ export class AuthProvider extends Base {
   async correctPassword(candidatePassword: string) {
     return await bycript.compare(candidatePassword, this.password || '');
   }
+}
+
+@ObjectType()
+@Entity()
+export class Access extends Base {
+  @Field(() => PhoneBrands)
+  @Enum({ items: () => PhoneBrands })
+  brand!: PhoneBrands;
+
+  @Field({ nullable: true })
+  @OneToOne(() => Device, (device) => device.access)
+  device!: Device;
 }

@@ -24,6 +24,7 @@ import { AuthDirective } from './directives/Auth';
 import { HasRoleDirective } from './directives/HasRole';
 import { UserResolver } from './resolver/UserResolver';
 import { AppError } from './utils/services/AppError';
+import { MessageResolver } from './resolver/MessageResolver';
 
 const app = express();
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
@@ -68,7 +69,7 @@ const startApp = async () => {
     });
 
     const schema = await buildSchema({
-      resolvers: [AuthProviderResolver, UserResolver],
+      resolvers: [AuthProviderResolver, UserResolver, MessageResolver],
     });
 
     SchemaDirectiveVisitor.visitSchemaDirectives(schema, {

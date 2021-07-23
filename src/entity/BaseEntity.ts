@@ -10,10 +10,6 @@ export class Base extends BaseEntity<Base, 'id'> {
   @PrimaryKey()
   id: string = v4();
 
-  @Field()
-  @Property()
-  createdAt: Date = new Date();
-
   @Field(() => ID)
   @Property()
   owner!: string;
@@ -21,4 +17,8 @@ export class Base extends BaseEntity<Base, 'id'> {
   @Field()
   @Property({ onUpdate: () => new Date() })
   updatedAt: Date = new Date();
+
+  @Field()
+  @Property()
+  createdAt: Date = new Date();
 }

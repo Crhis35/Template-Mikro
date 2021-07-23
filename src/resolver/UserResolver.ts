@@ -4,21 +4,15 @@ import {
   Arg,
   Field,
   Ctx,
-  ObjectType,
-  Query,
-  Info,
   Directive,
-  Int,
   InputType,
 } from 'type-graphql';
 
 import { AuthProvider } from '../entity/AuthProvider.entity';
 import { MyContext } from '../utils/interfaces/context.interface';
-import { GraphQLResolveInfo } from 'graphql';
 
 import { FileUpload, GraphQLUpload } from 'graphql-upload';
-import { ApiArgs, AuthInput, PaginatedResponse } from './input';
-import { APIFeatures, createSendToken, processUpload } from './utils';
+import { processUpload } from './utils';
 import { AppError } from '../utils/services/AppError';
 import { User } from '../entity/User.entity';
 
@@ -54,7 +48,7 @@ export class UserResolver {
       await em.persist(user).flush();
       return currentUser;
     } catch (error) {
-      throw new AppError(error.message, '404');
+      // throw new AppError(error.message, '404');
     }
   }
 
@@ -75,7 +69,7 @@ export class UserResolver {
       await em.persist(currentUser).flush();
       return currentUser;
     } catch (error) {
-      throw new AppError(error.message, '404');
+      // throw new AppError(error.message, '404');
     }
   }
 }
