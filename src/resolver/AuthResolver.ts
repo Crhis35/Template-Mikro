@@ -8,6 +8,8 @@ import {
   Query,
   Directive,
   Int,
+  FieldResolver,
+  Root,
 } from 'type-graphql';
 
 import { AuthProvider } from '../entity/AuthProvider.entity';
@@ -40,17 +42,23 @@ export class AuthProviderResolver {
       await em.persist(auth).flush();
       return await createSendToken(auth, res);
     } catch (error) {
-      // throw new AppError(error.message, '404');
+      throw new AppError(error.message, '404');
     }
   }
   @Query(() => PaginatedAuthProvider, { nullable: true })
   @Directive('@hasRole(roles: [ADMIN])')
   async getAllUser(
+    @Root() auth: AuthProvider,
     @Arg('args', { nullable: true })
-    args: ApiArgs,
+    { search, sort, limit, offset }: ApiArgs,
     @Ctx() { em }: MyContext
   ) {
-    return await APIFeatures(AuthProvider, em, args);
+    let orderBy: any = {};
+
+    if (sort)
+      orderBy[sort.field as keyof string] = sort.order === 'ASC' ? 1 : -1;
+
+    return await auth.devices.matching({});
   }
 
   @Query(() => AuthProvider)
@@ -89,11 +97,20 @@ export class AuthProviderResolver {
         throw new AppError("You're currently verifed", '404');
 
       currentUser.assign({ verified: true });
-      await em.persist(currentUser).flush();
+      await em.persistAndFlush(currentUser);
 
       return currentUser;
     } catch (error) {
       // throw new AppError(error.message, error.code);
     }
+  }
+  @FieldResolver()
+  async devices(
+    @Root() auth: AuthProvider,
+    @Arg('args', { nullable: true }) args: ApiArgs,
+    @Ctx() { em, currentUser, ...props }: MyContext
+  ) {
+    // return await auth.devices.matching(args);
+    return [];
   }
 }

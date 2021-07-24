@@ -116,10 +116,10 @@ export class AuthProvider extends Base {
     entity: () => Device,
     mappedBy: 'user',
     orphanRemoval: true,
+    joinColumn: 'Device',
+    referenceColumnName: 'devices',
   })
-  devices(@Arg('args') args: ApiArgs) {
-    return new Collection<Device>(this);
-  }
+  devices = new Collection<Device>(this);
 
   @Field()
   @Property({ nullable: true })
