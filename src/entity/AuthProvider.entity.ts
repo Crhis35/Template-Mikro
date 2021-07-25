@@ -27,7 +27,7 @@ export enum Provider {
   GMAIL = 'Gmail',
 }
 
-export enum PhoneBrands {
+export enum DeviceBrands {
   APPLE = 'APPLE',
   XIAOMI = 'XIAOMI',
   SAMSUNG = 'SAMSUNG',
@@ -46,9 +46,9 @@ registerEnumType(Provider, {
   description: 'Gmail auth or email',
 });
 
-registerEnumType(PhoneBrands, {
-  name: 'PhoneBrands', // this one is mandatory
-  description: 'Phone Brands',
+registerEnumType(DeviceBrands, {
+  name: 'DeviceBrands', // this one is mandatory
+  description: 'Device Brands',
 });
 registerEnumType(Provider, {
   name: 'Provider', // this one is mandatory
@@ -116,8 +116,6 @@ export class AuthProvider extends Base {
     entity: () => Device,
     mappedBy: 'user',
     orphanRemoval: true,
-    joinColumn: 'Device',
-    referenceColumnName: 'devices',
   })
   devices = new Collection<Device>(this);
 
@@ -136,16 +134,4 @@ export class AuthProvider extends Base {
   async correctPassword(candidatePassword: string) {
     return await bycript.compare(candidatePassword, this.password || '');
   }
-}
-
-@ObjectType()
-@Entity()
-export class Access extends Base {
-  @Field(() => PhoneBrands)
-  @Enum({ items: () => PhoneBrands })
-  brand!: PhoneBrands;
-
-  @Field({ nullable: true })
-  @OneToOne(() => Device, (device) => device.access)
-  device!: Device;
 }

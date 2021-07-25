@@ -63,3 +63,22 @@
 //     @auth
 //     @hasRole(roles: [Admin, Moderator])
 // }
+const parse = {
+  os: {
+    name: 'Mac',
+    short_name: 'MAC',
+    version: '10.15.7',
+    platform: '',
+    family: 'Mac',
+  },
+  client: {
+    type: 'browser',
+    name: 'Chrome',
+    short_name: 'CH',
+    version: '91.0.4472.164',
+    engine: 'Blink',
+    engine_version: '',
+    family: 'Chrome',
+  },
+  device: { id: 'AP', type: 'desktop', brand: 'Apple', model: '' },
+};

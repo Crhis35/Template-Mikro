@@ -12,12 +12,17 @@ import {
   Root,
 } from 'type-graphql';
 
+import { v4 } from 'uuid';
 import { AuthProvider } from '../entity/AuthProvider.entity';
 import { MyContext } from '../utils/interfaces/context.interface';
 
+import DeviceDetector from 'node-device-detector';
 import { ApiArgs, AuthInput, AuthInputLogin, PaginatedResponse } from './input';
 import { APIFeatures, createSendToken } from './utils';
 import { AppError } from '../utils/services/AppError';
+import { Device } from '../entity/Device.entity';
+import { cleanObject } from '../utils/functions';
+import { Access } from '../entity/Acces.entity';
 
 @ObjectType()
 class PaginatedAuthProvider extends PaginatedResponse(AuthProvider) {}
@@ -38,11 +43,28 @@ export class AuthProviderResolver {
     @Ctx() { res, req, em }: MyContext
   ) {
     try {
+      const detector = new DeviceDetector();
+      const userAgent = req.get('User-Agent') || '';
+      const result = detector.detect(userAgent);
       const auth = await em.getRepository(AuthProvider).create(input);
-      await em.persist(auth).flush();
+
+      const device = await em.getRepository(Device).create({
+        brand: result.device.brand,
+        user: auth.id,
+        owner: auth.id,
+      });
+
+      const access = await em.getRepository(Access).create({
+        token: v4(),
+        device: device.id,
+        owner: auth.id,
+      });
+      device.assign({ access: access.id }, { em });
+
+      await em.persist([auth, device, access]).flush();
       return await createSendToken(auth, res);
-    } catch (error) {
-      throw new AppError(error.message, '404');
+    } catch ({ message }) {
+      throw new AppError(message as string, '404');
     }
   }
   @Query(() => PaginatedAuthProvider, { nullable: true })
@@ -50,15 +72,10 @@ export class AuthProviderResolver {
   async getAllUser(
     @Root() auth: AuthProvider,
     @Arg('args', { nullable: true })
-    { search, sort, limit, offset }: ApiArgs,
+    args: ApiArgs,
     @Ctx() { em }: MyContext
   ) {
-    let orderBy: any = {};
-
-    if (sort)
-      orderBy[sort.field as keyof string] = sort.order === 'ASC' ? 1 : -1;
-
-    return await auth.devices.matching({});
+    return await APIFeatures(AuthProvider, em, args);
   }
 
   @Query(() => AuthProvider)
@@ -107,10 +124,35 @@ export class AuthProviderResolver {
   @FieldResolver()
   async devices(
     @Root() auth: AuthProvider,
-    @Arg('args', { nullable: true }) args: ApiArgs,
-    @Ctx() { em, currentUser, ...props }: MyContext
+    @Arg('args', () => ApiArgs, {
+      nullable: true,
+      defaultValue: {
+        search: '',
+        offset: 0,
+        limit: 10,
+        sort: null,
+        filter: '',
+      },
+    })
+    args: ApiArgs,
+    @Ctx() { em, currentUser, req }: MyContext
   ) {
-    // return await auth.devices.matching(args);
-    return [];
+    const { sort, limit, offset } = args;
+    await auth.devices.init();
+    let orderBy: any = {};
+
+    if (sort)
+      orderBy[sort.field as keyof string] = sort.order === 'ASC' ? 1 : -1;
+
+    const props = cleanObject({
+      limit,
+      offset,
+      orderBy,
+    });
+    await auth.devices.getItems();
+
+    const devices = await auth.devices.matching({ ...props });
+    await em.populate(devices, ['access']);
+    return devices;
   }
 }
