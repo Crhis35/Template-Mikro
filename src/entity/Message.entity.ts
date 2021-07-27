@@ -10,7 +10,7 @@ import {
   ArrayType,
 } from '@mikro-orm/core';
 import { Base } from './BaseEntity';
-import { User } from './User.entity';
+import { Company } from './Company.entity';
 import { ApiArgs } from '../resolver/input';
 
 export enum ConversationRole {
@@ -27,11 +27,11 @@ registerEnumType(ConversationRole, {
 @ObjectType()
 @Entity()
 export class Message extends Base {
-  @ManyToOne(() => User)
-  to!: User;
+  @ManyToOne(() => Company)
+  to!: Company;
 
-  @ManyToOne(() => User)
-  from!: User;
+  @ManyToOne(() => Company)
+  from!: Company;
 
   @OneToMany({
     entity: () => DeletedMessage,
@@ -58,8 +58,8 @@ export class Message extends Base {
 @ObjectType()
 @Entity()
 export class DeletedMessage extends Base {
-  @ManyToOne(() => User)
-  user!: User;
+  @ManyToOne(() => Company)
+  user!: Company;
 
   @ManyToOne(() => Message)
   message!: Message;
@@ -80,8 +80,8 @@ export class DeletedMessage extends Base {
 @ObjectType()
 @Entity()
 export class Conversation extends Base {
-  @ManyToOne(() => User)
-  creator!: User;
+  @ManyToOne(() => Company)
+  creator!: Company;
 
   @Field()
   @Property()
@@ -99,9 +99,9 @@ export class Participant extends Base {
   @ManyToOne(() => Conversation)
   conversation!: Conversation;
 
-  @Field(() => User)
-  @ManyToOne(() => User)
-  user!: User;
+  @Field(() => Company)
+  @ManyToOne(() => Company)
+  user!: Company;
 
   @Field(() => ConversationRole)
   @Enum({ items: () => ConversationRole, default: ConversationRole.MEMBER })
@@ -120,9 +120,9 @@ export class Participant extends Base {
 @ObjectType()
 @Entity()
 export class Report extends Base {
-  @Field(() => User)
-  @ManyToOne(() => User)
-  user!: User;
+  @Field(() => Company)
+  @ManyToOne(() => Company)
+  user!: Company;
 
   @Field(() => Participant)
   @ManyToOne(() => Participant)

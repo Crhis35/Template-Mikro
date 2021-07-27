@@ -22,7 +22,7 @@ import { AuthProviderResolver } from './resolver/AuthResolver';
 import { MyContext } from './utils/interfaces/context.interface';
 import { AuthDirective } from './directives/Auth';
 import { HasRoleDirective } from './directives/HasRole';
-import { UserResolver } from './resolver/UserResolver';
+import { CompanyResolver } from './resolver/CompanyResolver';
 import { AppError } from './utils/services/AppError';
 import { MessageResolver } from './resolver/MessageResolver';
 
@@ -69,7 +69,7 @@ const startApp = async () => {
     });
 
     const schema = await buildSchema({
-      resolvers: [AuthProviderResolver, UserResolver, MessageResolver],
+      resolvers: [AuthProviderResolver, CompanyResolver, MessageResolver],
     });
 
     SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
@@ -103,10 +103,10 @@ const startApp = async () => {
         message: `🚀 Server ready at http://localhost:${environment.port}${server.graphqlPath}`,
       })
     );
-  } catch (error) {
+  } catch ({ message }) {
     Consola.error({
       badge: true,
-      message: error.message,
+      message: message,
     });
   }
 };

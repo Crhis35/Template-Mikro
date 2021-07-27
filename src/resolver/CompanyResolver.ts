@@ -14,7 +14,7 @@ import { MyContext } from '../utils/interfaces/context.interface';
 import { FileUpload, GraphQLUpload } from 'graphql-upload';
 import { processUpload } from './utils';
 import { AppError } from '../utils/services/AppError';
-import { User } from '../entity/User.entity';
+import { Company } from '../entity/Company.entity';
 
 @InputType()
 class UserInput {
@@ -26,8 +26,8 @@ class UserInput {
   picture?: string;
 }
 
-@Resolver(User)
-export class UserResolver {
+@Resolver(Company)
+export class CompanyResolver {
   @Directive('@hasRole(roles: [USER])')
   @Mutation(() => AuthProvider)
   async createUser(
@@ -39,7 +39,7 @@ export class UserResolver {
       if (!currentUser.verified)
         throw new AppError('You are not currently verifed', '404');
 
-      const user = await em.getRepository(User).create({
+      const user = await em.getRepository(Company).create({
         ...input,
         auth: currentUser,
         owner: currentUser.id,
@@ -48,7 +48,7 @@ export class UserResolver {
       await em.persist(user).flush();
       return currentUser;
     } catch (error) {
-      // throw new AppError(error.message, '404');
+      throw new AppError(error.message, '404');
     }
   }
 
@@ -60,16 +60,21 @@ export class UserResolver {
     @Ctx() { em, currentUser }: MyContext
   ) {
     try {
-      if (!currentUser || !currentUser.user)
-        throw new AppError('No current User', '404');
-      let picture;
+      if (!currentUser || currentUser.companies.length < 0)
+        throw new AppError('No current Company', '404');
+      let picture = '';
       if (image) picture = await processUpload(image);
 
-      currentUser.user.assign({ ...input, picture });
+      const user = await em
+        .getRepository(Company)
+        .create({ ...input, picture });
+      currentUser.companies.add(user);
+
       await em.persist(currentUser).flush();
+
       return currentUser;
     } catch (error) {
-      // throw new AppError(error.message, '404');
+      throw new AppError(error.message, '404');
     }
   }
 }

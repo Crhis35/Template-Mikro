@@ -23,6 +23,7 @@ import { AppError } from '../utils/services/AppError';
 import { Device } from '../entity/Device.entity';
 import { cleanObject } from '../utils/functions';
 import { Access } from '../entity/Acces.entity';
+import Email from '../utils/services/email';
 
 @ObjectType()
 class PaginatedAuthProvider extends PaginatedResponse(AuthProvider) {}
@@ -61,7 +62,12 @@ export class AuthProviderResolver {
       });
       device.assign({ access: access.id }, { em });
 
+      const url = `${req.protocol}://${req.get('host')}`;
+
       await em.persist([auth, device, access]).flush();
+
+      await new Email(auth, url).sendWelcome(auth.verifiedCode);
+
       return await createSendToken(auth, res);
     } catch ({ message }) {
       throw new AppError(message as string, '404');
@@ -118,7 +124,7 @@ export class AuthProviderResolver {
 
       return currentUser;
     } catch (error) {
-      // throw new AppError(error.message, error.code);
+      throw new AppError(error.message, error.code);
     }
   }
   @FieldResolver()
@@ -152,6 +158,7 @@ export class AuthProviderResolver {
     await auth.devices.getItems();
 
     const devices = await auth.devices.matching({ ...props });
+
     await em.populate(devices, ['access']);
     return devices;
   }

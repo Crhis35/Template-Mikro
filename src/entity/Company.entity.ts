@@ -6,6 +6,7 @@ import {
   OneToMany,
   Collection,
   ManyToOne,
+  ManyToMany,
 } from '@mikro-orm/core';
 import { Base } from './BaseEntity';
 import { AuthProvider } from './AuthProvider.entity';
@@ -17,10 +18,11 @@ import {
   Report,
 } from './Message.entity';
 import { ApiArgs } from '../resolver/input';
+import { MyPlan } from './Plan.entity';
 
 @ObjectType()
 @Entity()
-export class User extends Base {
+export class Company extends Base {
   @Field()
   @Property()
   name!: string;
@@ -33,9 +35,17 @@ export class User extends Base {
   @Property({ nullable: true })
   picture?: string;
 
-  @Field(() => AuthProvider)
-  @OneToOne(() => AuthProvider, (auth) => auth.user)
-  auth!: AuthProvider;
+  @Field(() => [AuthProvider])
+  @ManyToMany({ entity: () => AuthProvider, inversedBy: 'companies' })
+  auths = new Collection<AuthProvider>(this);
+
+  @Field(() => MyPlan)
+  @OneToOne(() => MyPlan, (myPlan) => myPlan.user, {
+    owner: true,
+    orphanRemoval: true,
+    nullable: true,
+  })
+  myPlan!: MyPlan;
 
   @Field(() => [Message], { nullable: true })
   @OneToMany({
@@ -105,14 +115,15 @@ export class User extends Base {
     return new Collection<Friendship>(this);
   }
 }
+
 @ObjectType()
 @Entity()
 export class Friendship extends Base {
-  @Field(() => User)
-  @ManyToOne(() => User)
-  user1!: User;
+  @Field(() => Company)
+  @ManyToOne(() => Company)
+  user1!: Company;
 
-  @Field(() => User)
-  @ManyToOne(() => User)
-  user2!: User;
+  @Field(() => Company)
+  @ManyToOne(() => Company)
+  user2!: Company;
 }

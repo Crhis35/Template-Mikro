@@ -21,7 +21,7 @@ export default class Email implements IEmail {
     // TODO SLUG NAME CAMELCAZE
     this.firstName = user.userName.split(' ')[0];
     this.url = url;
-    this.from = `EvoStore ${environment.emailFrom}`;
+    this.from = `Afogata ${environment.emailFrom}`;
   }
   newTransport() {
     // if (process.env.NODE_ENV === 'production') {

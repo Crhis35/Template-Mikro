@@ -11,9 +11,10 @@ import {
   OneToOne,
   OneToMany,
   Collection,
+  ManyToMany,
 } from '@mikro-orm/core';
 import { Base } from './BaseEntity';
-import { User } from './User.entity';
+import { Company } from './Company.entity';
 import { ApiArgs } from '../resolver/input';
 import { Device } from './Device.entity';
 
@@ -86,13 +87,9 @@ export class AuthProvider extends Base {
   })
   verified!: Boolean;
 
-  @Field({ nullable: true })
-  @OneToOne(() => User, (user) => user.auth, {
-    owner: true,
-    orphanRemoval: true,
-    nullable: true,
-  })
-  user?: User;
+  @Field(() => [Company], { nullable: true })
+  @ManyToMany({ entity: () => Company, mappedBy: 'auths' })
+  companies = new Collection<Company>(this);
 
   @Field(() => [Role])
   @Enum({ items: () => Role, array: true, default: [Role.USER] })

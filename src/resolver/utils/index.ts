@@ -9,7 +9,7 @@ import { EntityManager, IDatabaseDriver } from '@mikro-orm/core';
 import { Connection } from '@mikro-orm/core';
 import { ApiArgs } from '../input';
 
-const storeUpload = async ({ stream, filename }: any) => {
+const storeUpload = async ({ stream, filename }: any): Promise<string> => {
   ensureDirectoryExistence(`${__dirname}/../images`);
   let { ext, name } = parse(filename);
 
@@ -27,7 +27,7 @@ const storeUpload = async ({ stream, filename }: any) => {
   );
 };
 
-export const processUpload = async (upload: any) => {
+export const processUpload = async (upload: any): Promise<string> => {
   const { createReadStream, filename } = await upload;
   const stream = createReadStream();
   const file = await storeUpload({ stream, filename });
