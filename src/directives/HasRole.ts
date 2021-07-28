@@ -5,11 +5,13 @@ import {
   GraphQLDirective,
   GraphQLList,
 } from 'graphql';
+import { AuthProvider } from '../entity/AuthProvider.entity';
+import { Base } from '../entity/BaseEntity';
 import { AppError } from '../utils/services/AppError';
 import { ensureAuthenticated } from './Auth';
 
-const assertOwner = (user: any, data: any) => {
-  if (user.userId.id !== data.owner) {
+const assertOwner = (user: AuthProvider, data: Base) => {
+  if (user.id !== data.owner) {
     throw new AppError('You need to be the owner', '401');
   }
 };

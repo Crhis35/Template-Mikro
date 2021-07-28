@@ -15,6 +15,7 @@ import { FileUpload, GraphQLUpload } from 'graphql-upload';
 import { processUpload } from './utils';
 import { AppError } from '../utils/services/AppError';
 import { Company } from '../entity/Company.entity';
+import { createBaseResolver } from './BaseResolver';
 
 @InputType()
 class UserInput {
@@ -26,24 +27,27 @@ class UserInput {
   picture?: string;
 }
 
+const CompanyBaseResolver = createBaseResolver('Company', Company);
+
 @Resolver(Company)
-export class CompanyResolver {
+export class CompanyResolver extends CompanyBaseResolver {
   @Directive('@hasRole(roles: [USER])')
   @Mutation(() => AuthProvider)
-  async createUser(
+  async createCompany(
     @Arg('input') input: UserInput,
     @Ctx() { em, currentUser }: MyContext
   ) {
     try {
-      if (!currentUser) throw new AppError('No credentiasl', '404');
+      if (!currentUser) throw new AppError('No credentials', '404');
       if (!currentUser.verified)
         throw new AppError('You are not currently verifed', '404');
 
       const user = await em.getRepository(Company).create({
         ...input,
-        auth: currentUser,
         owner: currentUser.id,
       });
+
+      user.auths.add(currentUser);
 
       await em.persist(user).flush();
       return currentUser;

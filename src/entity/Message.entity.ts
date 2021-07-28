@@ -11,7 +11,6 @@ import {
 } from '@mikro-orm/core';
 import { Base } from './BaseEntity';
 import { Company } from './Company.entity';
-import { ApiArgs } from '../resolver/input';
 
 export enum ConversationRole {
   OWNER = 'OWNER',
@@ -38,9 +37,7 @@ export class Message extends Base {
     mappedBy: 'message',
     orphanRemoval: true,
   })
-  deletedMessages(@Args() {}: ApiArgs) {
-    return new Collection<Message>(this);
-  }
+  deletedMessages = new Collection<Message>(this);
 
   @Field(() => [String], { nullable: true })
   @Property({ type: ArrayType, nullable: false })
@@ -113,9 +110,7 @@ export class Participant extends Base {
     mappedBy: 'participant',
     orphanRemoval: true,
   })
-  reports(@Arg('args') args: ApiArgs) {
-    return new Collection<Report>(this);
-  }
+  reports = new Collection<Report>(this);
 }
 @ObjectType()
 @Entity()

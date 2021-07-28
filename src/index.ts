@@ -26,6 +26,8 @@ import { CompanyResolver } from './resolver/CompanyResolver';
 import { AppError } from './utils/services/AppError';
 import { MessageResolver } from './resolver/MessageResolver';
 
+import path from 'path';
+
 const app = express();
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
@@ -45,7 +47,7 @@ app.use(mongoSanitize());
 app.use(xss());
 app.use(compression());
 app.disable('x-powered-by');
-app.use(express.json({ limit: '10kb' }));
+app.use(express.json({ limit: '20kb' }));
 app.use(express.static(join(__dirname, './images')));
 app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
 
@@ -70,6 +72,7 @@ const startApp = async () => {
 
     const schema = await buildSchema({
       resolvers: [AuthProviderResolver, CompanyResolver, MessageResolver],
+      emitSchemaFile: path.join(__dirname, './schema.graphql'),
     });
 
     SchemaDirectiveVisitor.visitSchemaDirectives(schema, {

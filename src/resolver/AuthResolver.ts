@@ -8,8 +8,8 @@ import {
   Query,
   Directive,
   Int,
+  Info,
   FieldResolver,
-  Root,
 } from 'type-graphql';
 
 import { v4 } from 'uuid';
@@ -17,16 +17,16 @@ import { AuthProvider } from '../entity/AuthProvider.entity';
 import { MyContext } from '../utils/interfaces/context.interface';
 
 import DeviceDetector from 'node-device-detector';
-import { ApiArgs, AuthInput, AuthInputLogin, PaginatedResponse } from './input';
-import { APIFeatures, createSendToken } from './utils';
+import fieldsToRelations from 'graphql-fields-to-relations';
+
+import { AuthInput, AuthInputLogin } from './input';
+import { createSendToken } from './utils';
 import { AppError } from '../utils/services/AppError';
 import { Device } from '../entity/Device.entity';
-import { cleanObject } from '../utils/functions';
 import { Access } from '../entity/Acces.entity';
 import Email from '../utils/services/email';
-
-@ObjectType()
-class PaginatedAuthProvider extends PaginatedResponse(AuthProvider) {}
+import { GraphQLResolveInfo } from 'graphql';
+import { createBaseResolver } from './BaseResolver';
 
 @ObjectType()
 class AuthAndToken {
@@ -36,8 +36,13 @@ class AuthAndToken {
   auth!: AuthProvider;
 }
 
+const AuthProviderBaseResolver = createBaseResolver(
+  'AuthProvider',
+  AuthProvider
+);
+
 @Resolver(AuthProvider)
-export class AuthProviderResolver {
+export class AuthProviderResolver extends AuthProviderBaseResolver {
   @Mutation(() => AuthAndToken)
   async signIn(
     @Arg('input') input: AuthInput,
@@ -73,16 +78,17 @@ export class AuthProviderResolver {
       throw new AppError(message as string, '404');
     }
   }
-  @Query(() => PaginatedAuthProvider, { nullable: true })
-  @Directive('@hasRole(roles: [ADMIN])')
-  async getAllUser(
-    @Root() auth: AuthProvider,
-    @Arg('args', { nullable: true })
-    args: ApiArgs,
-    @Ctx() { em }: MyContext
-  ) {
-    return await APIFeatures(AuthProvider, em, args);
-  }
+
+  // @Query(() => PaginatedAuthProvider, { nullable: true })
+  // @Directive('@hasRole(roles: [ADMIN])')
+  // async getAllUser(
+  //   @Root() auth: AuthProvider,
+  //   @Arg('args', { nullable: true })
+  //   args: ApiArgs,
+  //   @Ctx() { em }: MyContext
+  // ) {
+  //   return await APIFeatures(AuthProvider, em, args);
+  // }
 
   @Query(() => AuthProvider)
   @Directive('@auth')
@@ -90,19 +96,35 @@ export class AuthProviderResolver {
     return currentUser;
   }
 
-  @Query(() => AuthAndToken)
+  @Query(() => AuthAndToken, { nullable: true })
   async login(
     @Arg('input')
     { email, password }: AuthInputLogin,
-    @Ctx() { res, em }: MyContext
+    @Ctx() { res, em }: MyContext,
+    @Info() info: GraphQLResolveInfo
   ) {
-    const auth = await em
-      .getRepository(AuthProvider)
-      .findOneOrFail({ email }, ['user']);
-    if (!(await auth.correctPassword(password)))
-      throw new AppError('Invalid password or email', '401');
+    try {
+      const relationPaths: string[] = fieldsToRelations(info).filter(
+        (field) => field !== 'auth'
+      );
 
-    return await createSendToken(auth, res);
+      const newRelations = relationPaths.map((word) => {
+        const newWord = word.split('.');
+        newWord.shift();
+        return newWord.join('.');
+      });
+
+      const auth = await em
+        .getRepository(AuthProvider)
+        .findOneOrFail({ email }, newRelations);
+      if (!(await auth.correctPassword(password)))
+        throw new AppError('Invalid password or email', '401');
+
+      return await createSendToken(auth, res);
+    } catch (error) {
+      console.log(error);
+      throw new AppError(error.message, '401');
+    }
   }
 
   @Mutation(() => AuthProvider)
@@ -127,39 +149,45 @@ export class AuthProviderResolver {
       throw new AppError(error.message, error.code);
     }
   }
+
   @FieldResolver()
-  async devices(
-    @Root() auth: AuthProvider,
-    @Arg('args', () => ApiArgs, {
-      nullable: true,
-      defaultValue: {
-        search: '',
-        offset: 0,
-        limit: 10,
-        sort: null,
-        filter: '',
-      },
-    })
-    args: ApiArgs,
-    @Ctx() { em, currentUser, req }: MyContext
-  ) {
-    const { sort, limit, offset } = args;
-    await auth.devices.init();
-    let orderBy: any = {};
-
-    if (sort)
-      orderBy[sort.field as keyof string] = sort.order === 'ASC' ? 1 : -1;
-
-    const props = cleanObject({
-      limit,
-      offset,
-      orderBy,
-    });
-    await auth.devices.getItems();
-
-    const devices = await auth.devices.matching({ ...props });
-
-    await em.populate(devices, ['access']);
-    return devices;
+  async password() {
+    return null;
   }
+
+  // @FieldResolver()
+  // async devices(
+  //   @Root() auth: AuthProvider,
+  //   @Arg('args', () => ApiArgs, {
+  //     nullable: true,
+  //     defaultValue: {
+  //       search: '',
+  //       offset: 0,
+  //       limit: 10,
+  //       sort: null,
+  //       filter: '',
+  //     },
+  //   })
+  //   args: ApiArgs,
+  //   @Ctx() { em, currentUser, req }: MyContext
+  // ) {
+  //   const { sort, limit, offset } = args;
+  //   await auth.devices.init();
+  //   let orderBy: any = {};
+
+  //   if (sort)
+  //     orderBy[sort.field as keyof string] = sort.order === 'ASC' ? 1 : -1;
+
+  //   const props = cleanObject({
+  //     limit,
+  //     offset,
+  //     orderBy,
+  //   });
+  //   await auth.devices.getItems();
+
+  //   const devices = await auth.devices.matching({ ...props });
+
+  //   // await em.populate(devices, ['access']);
+  //   return devices;
+  // }
 }

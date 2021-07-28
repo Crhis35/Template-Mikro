@@ -1,3 +1,6 @@
+import { GraphQLResolveInfo } from 'graphql';
+import fieldsToRelations from 'graphql-fields-to-relations';
+
 export const verificationDigit = (myNit: string) => {
   let vpri, x: number, y: any, z: number;
 
@@ -60,4 +63,17 @@ export const setEmptyObject = (object: { [key: string]: any } = {}) => {
     }
   });
   return object;
+};
+
+export const infoMapper = (info: GraphQLResolveInfo, name: string) => {
+  const relationPaths: string[] = fieldsToRelations(info).filter(
+    (field) => field !== name
+  );
+
+  const newRelations = relationPaths.map((word) => {
+    const newWord = word.split('.');
+    newWord.shift();
+    return newWord.join('.');
+  });
+  return newRelations;
 };

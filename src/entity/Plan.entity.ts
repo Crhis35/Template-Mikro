@@ -42,7 +42,7 @@ export class MyPlan extends Base {
   @OneToOne(() => Company, (company) => company.myPlan)
   user!: Company;
 
-  @Field(() => Plan)
+  @Field(() => Plan, { nullable: false })
   @ManyToOne(() => Plan)
   type!: Plan;
 

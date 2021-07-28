@@ -1,4 +1,5 @@
 import {
+  ArgsType,
   ClassType,
   Field,
   InputType,

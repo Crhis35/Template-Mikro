@@ -39,13 +39,13 @@ export class Company extends Base {
   @ManyToMany({ entity: () => AuthProvider, inversedBy: 'companies' })
   auths = new Collection<AuthProvider>(this);
 
-  @Field(() => MyPlan)
+  @Field(() => MyPlan, { nullable: true })
   @OneToOne(() => MyPlan, (myPlan) => myPlan.user, {
     owner: true,
     orphanRemoval: true,
     nullable: true,
   })
-  myPlan!: MyPlan;
+  myPlan?: MyPlan;
 
   @Field(() => [Message], { nullable: true })
   @OneToMany({
@@ -53,9 +53,7 @@ export class Company extends Base {
     mappedBy: 'to',
     orphanRemoval: true,
   })
-  sendedMessages(@Arg('args') args: ApiArgs) {
-    return new Collection<Message>(this);
-  }
+  sendedMessages = new Collection<Message>(this);
 
   @Field(() => [Message], { nullable: true })
   @OneToMany({
@@ -63,9 +61,7 @@ export class Company extends Base {
     mappedBy: 'from',
     orphanRemoval: true,
   })
-  receivedMessages(@Arg('args') args: ApiArgs) {
-    return new Collection<Message>(this);
-  }
+  receivedMessages = new Collection<Message>(this);
 
   @Field(() => [DeletedMessage], { nullable: true })
   @OneToMany({
@@ -73,9 +69,7 @@ export class Company extends Base {
     mappedBy: 'user',
     orphanRemoval: true,
   })
-  deletedMessages(@Arg('args') args: ApiArgs) {
-    return new Collection<Message>(this);
-  }
+  deletedMessages = new Collection<Message>(this);
 
   @Field(() => [Conversation], { nullable: true })
   @OneToMany({
@@ -91,9 +85,7 @@ export class Company extends Base {
     mappedBy: 'user',
     orphanRemoval: true,
   })
-  participants(@Arg('args') args: ApiArgs) {
-    return new Collection<Message>(this);
-  }
+  participants = new Collection<Message>(this);
 
   @Field(() => [Report], { nullable: true })
   @OneToMany({
@@ -101,19 +93,11 @@ export class Company extends Base {
     mappedBy: 'user',
     orphanRemoval: true,
   })
-  reports(@Arg('args') args: ApiArgs) {
-    return new Collection<Report>(this);
-  }
+  reports = new Collection<Report>(this);
 
-  @Field(() => [Friendship], { nullable: true })
-  @OneToMany({
-    entity: () => Friendship,
-    mappedBy: 'user1',
-    orphanRemoval: true,
-  })
-  friends(@Arg('args') args: ApiArgs) {
-    return new Collection<Friendship>(this);
-  }
+  @Field(() => [Company])
+  @ManyToMany({ entity: () => Company })
+  companies = new Collection<Company>(this);
 }
 
 @ObjectType()

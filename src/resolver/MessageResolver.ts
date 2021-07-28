@@ -1,10 +1,20 @@
-import { Resolver, Arg, Ctx, ObjectType, Query, Directive } from 'type-graphql';
+import {
+  Resolver,
+  Arg,
+  Ctx,
+  ObjectType,
+  Query,
+  Directive,
+  Info,
+} from 'type-graphql';
 
 import { MyContext } from '../utils/interfaces/context.interface';
 
 import { ApiArgs, PaginatedResponse } from './input';
 import { APIFeatures } from './utils';
 import { Message } from '../entity/Message.entity';
+import { infoMapper } from '../utils/functions';
+import { GraphQLResolveInfo } from 'graphql';
 
 @ObjectType()
 class PaginatedMessage extends PaginatedResponse(Message) {}
@@ -13,12 +23,29 @@ class PaginatedMessage extends PaginatedResponse(Message) {}
 export class MessageResolver {
   @Query(() => PaginatedMessage, { nullable: true })
   @Directive('@auth')
-  async listMessages(
-    @Arg('args', { nullable: true })
+  async listAllMessages(
+    @Arg('args', {
+      nullable: true,
+      defaultValue: {
+        search: '',
+        offset: 0,
+        limit: 10,
+        sort: null,
+        filter: '',
+      },
+    })
     args: ApiArgs,
-    @Ctx() { em, currentUser }: MyContext
+    @Ctx() { em, currentUser }: MyContext,
+    @Info() info: GraphQLResolveInfo
   ) {
+    const newRelations = infoMapper(info, 'items');
     const id = currentUser ? currentUser.id : null;
-    return await APIFeatures(Message, em, args, id);
+    return await APIFeatures({
+      Model: Message,
+      em,
+      args,
+      id,
+      fields: newRelations,
+    });
   }
 }

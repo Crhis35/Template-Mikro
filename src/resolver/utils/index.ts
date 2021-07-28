@@ -58,15 +58,21 @@ export const createSendToken = (auth: AuthProvider, res: any) => {
   };
 };
 
-export async function APIFeatures(
-  Model: Function,
-  em: EntityManager<IDatabaseDriver<Connection>>,
-  { search, sort, limit, offset }: ApiArgs,
-  id: string | null = null
-) {
+export async function APIFeatures({
+  args: { search, sort, limit, offset },
+  Model,
+  em,
+  id = null,
+  fields = [],
+}: {
+  Model: Function;
+  em: EntityManager<IDatabaseDriver<Connection>>;
+  args: ApiArgs;
+  id?: string | null;
+  fields: string[];
+}): Promise<any> {
   let searchQuery = {};
   let orderBy: any = {};
-
   if (search) {
     let owner = {};
     if (id) owner = { $eq: { owner: id } };
@@ -79,8 +85,7 @@ export async function APIFeatures(
 
   const [items, count] = await em
     .getRepository(Model)
-    .findAndCount(searchQuery, { limit, offset, orderBy });
-
+    .findAndCount(searchQuery, { populate: fields, orderBy, limit, offset });
   return {
     items,
     totalPages: Math.ceil(count / limit),

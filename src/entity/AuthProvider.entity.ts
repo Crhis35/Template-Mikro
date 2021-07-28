@@ -1,5 +1,5 @@
 import { IsDate, IsEmail } from 'class-validator';
-import { Arg, Field, Int, ObjectType } from 'type-graphql';
+import { Arg, Directive, Field, Int, ObjectType } from 'type-graphql';
 import { registerEnumType } from 'type-graphql';
 import bycript from 'bcrypt';
 
@@ -63,7 +63,7 @@ export class AuthProvider extends Base {
   @Property({ unique: true })
   userName!: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Property({ nullable: true, hidden: true })
   password?: string;
 
