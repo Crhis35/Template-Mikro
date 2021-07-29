@@ -1,4 +1,4 @@
-import { Arg, Args, Field, ObjectType, registerEnumType } from 'type-graphql';
+import { Field, ObjectType, registerEnumType } from 'type-graphql';
 
 import {
   Entity,
@@ -10,7 +10,8 @@ import {
   ArrayType,
 } from '@mikro-orm/core';
 import { Base } from './BaseEntity';
-import { Company } from './Company.entity';
+import { AuthProvider } from './AuthProvider.entity';
+import { Conversation } from './Conversation.entity';
 
 export enum ConversationRole {
   OWNER = 'OWNER',
@@ -26,18 +27,21 @@ registerEnumType(ConversationRole, {
 @ObjectType()
 @Entity()
 export class Message extends Base {
-  @ManyToOne(() => Company)
-  to!: Company;
+  @ManyToOne(() => AuthProvider)
+  to!: AuthProvider;
 
-  @ManyToOne(() => Company)
-  from!: Company;
+  @ManyToOne(() => AuthProvider)
+  from!: AuthProvider;
+
+  @ManyToOne(() => Conversation)
+  conversation!: Conversation;
 
   @OneToMany({
     entity: () => DeletedMessage,
     mappedBy: 'message',
     orphanRemoval: true,
   })
-  deletedMessages = new Collection<Message>(this);
+  deletedMessages = new Collection<DeletedMessage>(this);
 
   @Field(() => [String], { nullable: true })
   @Property({ type: ArrayType, nullable: false })
@@ -55,8 +59,8 @@ export class Message extends Base {
 @ObjectType()
 @Entity()
 export class DeletedMessage extends Base {
-  @ManyToOne(() => Company)
-  user!: Company;
+  @ManyToOne(() => AuthProvider)
+  user!: AuthProvider;
 
   @ManyToOne(() => Message)
   message!: Message;
@@ -76,29 +80,14 @@ export class DeletedMessage extends Base {
 
 @ObjectType()
 @Entity()
-export class Conversation extends Base {
-  @ManyToOne(() => Company)
-  creator!: Company;
-
-  @Field()
-  @Property()
-  title!: string;
-
-  @Field({ nullable: true })
-  @Property({ nullable: true })
-  deleteAt?: Date;
-}
-
-@ObjectType()
-@Entity()
 export class Participant extends Base {
   @Field(() => Conversation)
   @ManyToOne(() => Conversation)
   conversation!: Conversation;
 
-  @Field(() => Company)
-  @ManyToOne(() => Company)
-  user!: Company;
+  @Field(() => AuthProvider)
+  @ManyToOne(() => AuthProvider)
+  user!: AuthProvider;
 
   @Field(() => ConversationRole)
   @Enum({ items: () => ConversationRole, default: ConversationRole.MEMBER })
@@ -115,9 +104,9 @@ export class Participant extends Base {
 @ObjectType()
 @Entity()
 export class Report extends Base {
-  @Field(() => Company)
-  @ManyToOne(() => Company)
-  user!: Company;
+  @Field(() => AuthProvider)
+  @ManyToOne(() => AuthProvider)
+  user!: AuthProvider;
 
   @Field(() => Participant)
   @ManyToOne(() => Participant)

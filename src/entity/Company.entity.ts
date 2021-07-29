@@ -1,4 +1,4 @@
-import { Arg, Field, ObjectType } from 'type-graphql';
+import { Field, Int, ObjectType } from 'type-graphql';
 import {
   Entity,
   Property,
@@ -10,14 +10,7 @@ import {
 } from '@mikro-orm/core';
 import { Base } from './BaseEntity';
 import { AuthProvider } from './AuthProvider.entity';
-import {
-  Conversation,
-  DeletedMessage,
-  Message,
-  Participant,
-  Report,
-} from './Message.entity';
-import { ApiArgs } from '../resolver/input';
+import { Report } from './Message.entity';
 import { MyPlan } from './Plan.entity';
 
 @ObjectType()
@@ -27,9 +20,9 @@ export class Company extends Base {
   @Property()
   name!: string;
 
-  @Field()
-  @Property()
-  lastName!: string;
+  @Field(() => Int)
+  @Property({ columnType: 'int' })
+  taxId!: number;
 
   @Field({ nullable: true })
   @Property({ nullable: true })
@@ -46,68 +39,16 @@ export class Company extends Base {
     nullable: true,
   })
   myPlan?: MyPlan;
-
-  @Field(() => [Message], { nullable: true })
-  @OneToMany({
-    entity: () => Message,
-    mappedBy: 'to',
-    orphanRemoval: true,
-  })
-  sendedMessages = new Collection<Message>(this);
-
-  @Field(() => [Message], { nullable: true })
-  @OneToMany({
-    entity: () => Message,
-    mappedBy: 'from',
-    orphanRemoval: true,
-  })
-  receivedMessages = new Collection<Message>(this);
-
-  @Field(() => [DeletedMessage], { nullable: true })
-  @OneToMany({
-    entity: () => DeletedMessage,
-    mappedBy: 'user',
-    orphanRemoval: true,
-  })
-  deletedMessages = new Collection<Message>(this);
-
-  @Field(() => [Conversation], { nullable: true })
-  @OneToMany({
-    entity: () => Conversation,
-    mappedBy: 'creator',
-    orphanRemoval: true,
-  })
-  conversations = new Collection<Message>(this);
-
-  @Field(() => [Participant], { nullable: true })
-  @OneToMany({
-    entity: () => Participant,
-    mappedBy: 'user',
-    orphanRemoval: true,
-  })
-  participants = new Collection<Message>(this);
-
-  @Field(() => [Report], { nullable: true })
-  @OneToMany({
-    entity: () => Report,
-    mappedBy: 'user',
-    orphanRemoval: true,
-  })
-  reports = new Collection<Report>(this);
-
-  @Field(() => [Company])
-  @ManyToMany({ entity: () => Company })
-  companies = new Collection<Company>(this);
 }
 
-@ObjectType()
-@Entity()
-export class Friendship extends Base {
-  @Field(() => Company)
-  @ManyToOne(() => Company)
-  user1!: Company;
+// @ObjectType()
+// @Entity()
+// export class Friendship extends Base {
+//   @Field(() => Company)
+//   @ManyToOne(() => Company)
+//   user1!: Company;
 
-  @Field(() => Company)
-  @ManyToOne(() => Company)
-  user2!: Company;
-}
+//   @Field(() => Company)
+//   @ManyToOne(() => Company)
+//   user2!: Company;
+// }

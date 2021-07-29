@@ -6,6 +6,8 @@ import {
   Ctx,
   Directive,
   InputType,
+  Info,
+  Int,
 } from 'type-graphql';
 
 import { AuthProvider } from '../entity/AuthProvider.entity';
@@ -16,15 +18,26 @@ import { processUpload } from './utils';
 import { AppError } from '../utils/services/AppError';
 import { Company } from '../entity/Company.entity';
 import { createBaseResolver } from './BaseResolver';
+import { GraphQLResolveInfo } from 'graphql';
+import fieldsToRelations from 'graphql-fields-to-relations';
+import { Tag } from '../entity/BaseEntity';
 
 @InputType()
 class UserInput {
   @Field({ nullable: true })
-  name?: string;
+  id?: string;
+
   @Field({ nullable: true })
-  lastName?: string;
+  name?: string;
+
+  @Field(() => Int, { nullable: true })
+  taxId?: number;
+
   @Field({ nullable: true })
   picture?: string;
+
+  @Field(() => [Tag], { nullable: true })
+  tags?: [Tag];
 }
 
 const CompanyBaseResolver = createBaseResolver('Company', Company);
@@ -57,11 +70,12 @@ export class CompanyResolver extends CompanyBaseResolver {
   }
 
   @Directive('@auth')
-  @Mutation(() => AuthProvider)
-  async updateUser(
+  @Mutation(() => Company)
+  async updateCompany(
     @Arg('input', { nullable: true }) input: UserInput,
     @Arg('image', () => GraphQLUpload, { nullable: true }) image: FileUpload,
-    @Ctx() { em, currentUser }: MyContext
+    @Ctx() { em, currentUser }: MyContext,
+    @Info() info: GraphQLResolveInfo
   ) {
     try {
       if (!currentUser || currentUser.companies.length < 0)
@@ -69,14 +83,19 @@ export class CompanyResolver extends CompanyBaseResolver {
       let picture = '';
       if (image) picture = await processUpload(image);
 
-      const user = await em
+      const { id } = input;
+
+      const relationPaths: string[] = fieldsToRelations(info);
+
+      const company = await em
         .getRepository(Company)
-        .create({ ...input, picture });
-      currentUser.companies.add(user);
+        .findOneOrFail({ id }, relationPaths);
 
-      await em.persist(currentUser).flush();
+      company.assign({ ...input, picture });
 
-      return currentUser;
+      await em.persist(company).flush();
+
+      return company;
     } catch (error) {
       throw new AppError(error.message, '404');
     }

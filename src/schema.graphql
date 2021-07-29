@@ -42,19 +42,24 @@ input AuthInputLogin {
 
 type AuthProvider {
   companies: [Company!]
+  conversations: [Conversation!]
   createdAt: DateTime!
   devices: [Device!]
   email: String!
+  from: [Message!]
   id: ID!
   isBlocked: Boolean!
   isReported: Boolean!
   owner: ID!
+  participants: [Participant!]
   password: String
   passwordChangedAt: DateTime!
   passwordResetExpires: DateTime!
   provider: Provider!
+  reports: [Report!]
   role: [Role!]!
   tags: [Tag!]!
+  to: [Message!]
   updatedAt: DateTime!
   userName: String!
   verified: Boolean!
@@ -63,21 +68,14 @@ type AuthProvider {
 
 type Company {
   auths: [AuthProvider!]!
-  companies: [Company!]!
-  conversations: [Conversation!]
   createdAt: DateTime!
-  deletedMessages: [DeletedMessage!]
   id: ID!
-  lastName: String!
   myPlan: MyPlan
   name: String!
   owner: ID!
-  participants: [Participant!]
   picture: String
-  receivedMessages: [Message!]
-  reports: [Report!]
-  sendedMessages: [Message!]
   tags: [Tag!]!
+  taxId: Int!
   updatedAt: DateTime!
 }
 
@@ -85,10 +83,13 @@ type Conversation {
   createdAt: DateTime!
   deleteAt: DateTime
   id: ID!
+  messages: [Message!]
   owner: ID!
+  participant: [Participant!]
   tags: [Tag!]!
   title: String!
   updatedAt: DateTime!
+  users: [AuthProvider!]
 }
 
 """Roles in a conversation"""
@@ -102,17 +103,6 @@ enum ConversationRole {
 The javascript `Date` as string. Type represents date and time as the ISO Date string.
 """
 scalar DateTime
-
-type DeletedMessage {
-  attachment: [String!]
-  createdAt: DateTime!
-  deleteAt: DateTime
-  id: ID!
-  owner: ID!
-  tags: [Tag!]!
-  text: String!
-  updatedAt: DateTime!
-}
 
 type Device {
   access: Access
@@ -149,7 +139,7 @@ type Message {
 type Mutation {
   createCompany(input: UserInput!): AuthProvider!
   signIn(input: AuthInput!): AuthAndToken!
-  updateUser(image: Upload, input: UserInput): AuthProvider!
+  updateCompany(image: Upload, input: UserInput): Company!
   verified(code: Int!): AuthProvider!
 }
 
@@ -198,7 +188,7 @@ type Participant {
   tags: [Tag!]!
   type: ConversationRole!
   updatedAt: DateTime!
-  user: Company!
+  user: AuthProvider!
 }
 
 type Plan {
@@ -237,7 +227,7 @@ type Report {
   tags: [Tag!]!
   text: String!
   updatedAt: DateTime!
-  user: Company!
+  user: AuthProvider!
 }
 
 """Roles of the user"""
@@ -257,11 +247,18 @@ type Tag {
   value: String!
 }
 
+input TagInput {
+  subject: String!
+  value: String!
+}
+
 """The `Upload` scalar type represents a file upload."""
 scalar Upload
 
 input UserInput {
-  lastName: String
+  id: String
   name: String
   picture: String
+  tags: [TagInput!]
+  taxId: Int
 }

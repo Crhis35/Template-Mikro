@@ -1,5 +1,5 @@
 import { IsDate, IsEmail } from 'class-validator';
-import { Arg, Directive, Field, Int, ObjectType } from 'type-graphql';
+import { Field, Int, ObjectType } from 'type-graphql';
 import { registerEnumType } from 'type-graphql';
 import bycript from 'bcrypt';
 
@@ -8,15 +8,15 @@ import {
   Property,
   Enum,
   BeforeCreate,
-  OneToOne,
   OneToMany,
   Collection,
   ManyToMany,
 } from '@mikro-orm/core';
 import { Base } from './BaseEntity';
 import { Company } from './Company.entity';
-import { ApiArgs } from '../resolver/input';
 import { Device } from './Device.entity';
+import { Message, Participant, Report } from './Message.entity';
+import { Conversation } from './Conversation.entity';
 
 export enum Role {
   ADMIN = 'Admin',
@@ -120,6 +120,42 @@ export class AuthProvider extends Base {
   @Property({ nullable: true })
   @IsDate()
   passwordResetExpires?: Date;
+
+  @Field(() => [Message], { nullable: true })
+  @OneToMany({
+    entity: () => Message,
+    mappedBy: 'to',
+    orphanRemoval: true,
+  })
+  to = new Collection<Message>(this);
+
+  @Field(() => [Message], { nullable: true })
+  @OneToMany({
+    entity: () => Message,
+    mappedBy: 'from',
+    orphanRemoval: true,
+  })
+  from = new Collection<Message>(this);
+
+  @Field(() => [Participant], { nullable: true })
+  @OneToMany({
+    entity: () => Participant,
+    mappedBy: 'user',
+    orphanRemoval: true,
+  })
+  participants = new Collection<Message>(this);
+
+  @Field(() => [Conversation], { nullable: true })
+  @ManyToMany({ entity: () => Conversation, mappedBy: 'users' })
+  conversations = new Collection<Conversation>(this);
+
+  @Field(() => [Report], { nullable: true })
+  @OneToMany({
+    entity: () => Report,
+    mappedBy: 'user',
+    orphanRemoval: true,
+  })
+  reports = new Collection<Report>(this);
 
   @BeforeCreate()
   async generateUuid() {

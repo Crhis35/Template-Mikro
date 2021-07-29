@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, ID, InputType, ObjectType } from 'type-graphql';
 
 import {
   Entity,
@@ -11,8 +11,9 @@ import {
 import { v4 } from 'uuid';
 
 @ObjectType()
+@InputType('TagInput')
 @Entity()
-class Tag {
+export class Tag {
   @Field()
   subject!: string;
 

@@ -33,8 +33,10 @@ yarn install
 
 ## Create DB on MySQL
 
+Manually you must setup `afotest` on DB
+
 ```sh
-npx mikro-orm schema:create -r
+yarn schema:create
 ```
 
 ## Start project
