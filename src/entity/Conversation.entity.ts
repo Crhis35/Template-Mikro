@@ -13,9 +13,9 @@ import { Message, Participant } from './Message.entity';
 @ObjectType()
 @Entity()
 export class Conversation extends Base {
-  @Field()
-  @Property()
-  title!: string;
+  @Field({ nullable: true })
+  @Property({ nullable: true })
+  title?: string;
 
   @Field(() => [Message], { nullable: true })
   @OneToMany({

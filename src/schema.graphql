@@ -87,7 +87,7 @@ type Conversation {
   owner: ID!
   participant: [Participant!]
   tags: [Tag!]!
-  title: String!
+  title: String
   updatedAt: DateTime!
   users: [AuthProvider!]
 }
@@ -138,6 +138,7 @@ type Message {
 
 type Mutation {
   createCompany(input: UserInput!): AuthProvider!
+  sendMessage(args: ApiArgs!): Message!
   signIn(input: AuthInput!): AuthAndToken!
   updateCompany(image: Upload, input: UserInput): Company!
   verified(code: Int!): AuthProvider!

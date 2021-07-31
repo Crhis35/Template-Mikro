@@ -107,7 +107,6 @@ export class AuthProviderResolver extends AuthProviderBaseResolver {
       const relationPaths: string[] = fieldsToRelations(info).filter(
         (field) => field !== 'auth'
       );
-
       const newRelations = relationPaths.map((word) => {
         const newWord = word.split('.');
         newWord.shift();
@@ -117,6 +116,7 @@ export class AuthProviderResolver extends AuthProviderBaseResolver {
       const auth = await em
         .getRepository(AuthProvider)
         .findOneOrFail({ email }, newRelations);
+
       if (!(await auth.correctPassword(password)))
         throw new AppError('Invalid password or email', '401');
 

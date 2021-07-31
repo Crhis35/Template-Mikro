@@ -16,12 +16,12 @@ import { MyContext } from '../utils/interfaces/context.interface';
 
 import { ApiArgs, PaginatedResponse } from './input';
 import { APIFeatures } from './utils';
-import { Message } from '../entity/Message.entity';
 import { infoMapper } from '../utils/functions';
 import { GraphQLResolveInfo } from 'graphql';
+import { Conversation } from '../entity/Conversation.entity';
 
 @ObjectType()
-class PaginatedMessage extends PaginatedResponse(Message) {}
+class PaginatedConversation extends PaginatedResponse(Conversation) {}
 
 @InputType()
 class InputMessage {
@@ -36,9 +36,9 @@ class InputMessage {
   filter?: String;
 }
 
-@Resolver(Message)
+@Resolver(Conversation)
 export class MessageResolver {
-  @Query(() => PaginatedMessage, { nullable: true })
+  @Query(() => PaginatedConversation, { nullable: true })
   @Directive('@auth')
   async listAllMessages(
     @Arg('args', {
@@ -58,7 +58,7 @@ export class MessageResolver {
     const newRelations = infoMapper(info, 'items');
     const id = currentUser ? currentUser.id : null;
     return await APIFeatures({
-      Model: Message,
+      Model: Conversation,
       em,
       args,
       id,
@@ -66,9 +66,9 @@ export class MessageResolver {
     });
   }
 
-  @Mutation(() => Message)
+  @Mutation(() => Conversation)
   @Directive('@auth')
-  async sendMessage(
+  async createConversation(
     @Arg('args')
     args: ApiArgs,
     @Ctx() { em, currentUser }: MyContext,
