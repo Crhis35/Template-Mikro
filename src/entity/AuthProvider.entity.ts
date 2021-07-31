@@ -124,14 +124,6 @@ export class AuthProvider extends Base {
   @Field(() => [Message], { nullable: true })
   @OneToMany({
     entity: () => Message,
-    mappedBy: 'to',
-    orphanRemoval: true,
-  })
-  to = new Collection<Message>(this);
-
-  @Field(() => [Message], { nullable: true })
-  @OneToMany({
-    entity: () => Message,
     mappedBy: 'from',
     orphanRemoval: true,
   })

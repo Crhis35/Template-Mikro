@@ -27,6 +27,7 @@ import { AppError } from './utils/services/AppError';
 import { MessageResolver } from './resolver/MessageResolver';
 
 import path from 'path';
+import { ConversationResolver } from './resolver/ConversationResolver';
 
 const app = express();
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
@@ -71,7 +72,12 @@ const startApp = async () => {
     });
 
     const schema = await buildSchema({
-      resolvers: [AuthProviderResolver, CompanyResolver, MessageResolver],
+      resolvers: [
+        AuthProviderResolver,
+        CompanyResolver,
+        MessageResolver,
+        ConversationResolver,
+      ],
       emitSchemaFile: path.join(__dirname, './schema.graphql'),
     });
 

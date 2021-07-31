@@ -59,7 +59,6 @@ type AuthProvider {
   reports: [Report!]
   role: [Role!]!
   tags: [Tag!]!
-  to: [Message!]
   updatedAt: DateTime!
   userName: String!
   verified: Boolean!
@@ -77,6 +76,14 @@ type Company {
   tags: [Tag!]!
   taxId: Int!
   updatedAt: DateTime!
+}
+
+input CompanyInput {
+  id: String
+  name: String
+  picture: String
+  tags: [TagInput!]
+  taxId: Int
 }
 
 type Conversation {
@@ -125,8 +132,13 @@ enum DeviceBrands {
   XIAOMI
 }
 
+input InputConversation {
+  participants: [ID!]!
+  title: String
+}
+
 type Message {
-  attachment: [String!]
+  attachments: [String!]
   createdAt: DateTime!
   deleteAt: DateTime
   id: ID!
@@ -137,10 +149,11 @@ type Message {
 }
 
 type Mutation {
-  createCompany(input: UserInput!): AuthProvider!
+  createCompany(input: CompanyInput!): AuthProvider!
+  createConversation(args: InputConversation!): Conversation!
   sendMessage(args: ApiArgs!): Message!
   signIn(input: AuthInput!): AuthAndToken!
-  updateCompany(image: Upload, input: UserInput): Company!
+  updateCompany(image: Upload, input: CompanyInput): Company!
   verified(code: Int!): AuthProvider!
 }
 
@@ -174,8 +187,8 @@ type PaginatedCompanyResponse {
   totalPages: Int!
 }
 
-type PaginatedMessage {
-  items: [Message!]!
+type PaginatedConversation {
+  items: [Conversation!]!
   offset: Int!
   totalPages: Int!
 }
@@ -214,7 +227,7 @@ type Query {
   getCompany(id: String!): Company!
   listAllAuthProviders(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedAuthProviderResponse
   listAllCompanys(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedCompanyResponse
-  listAllMessages(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedMessage
+  listAllMessages(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedConversation
   login(input: AuthInputLogin!): AuthAndToken
   me: AuthProvider!
 }
@@ -255,11 +268,3 @@ input TagInput {
 
 """The `Upload` scalar type represents a file upload."""
 scalar Upload
-
-input UserInput {
-  id: String
-  name: String
-  picture: String
-  tags: [TagInput!]
-  taxId: Int
-}

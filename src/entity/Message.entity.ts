@@ -28,9 +28,6 @@ registerEnumType(ConversationRole, {
 @Entity()
 export class Message extends Base {
   @ManyToOne(() => AuthProvider)
-  to!: AuthProvider;
-
-  @ManyToOne(() => AuthProvider)
   from!: AuthProvider;
 
   @ManyToOne(() => Conversation)
@@ -45,7 +42,7 @@ export class Message extends Base {
 
   @Field(() => [String], { nullable: true })
   @Property({ type: ArrayType, nullable: false })
-  attachment?: [string];
+  attachments?: [string];
 
   @Field()
   @Property()

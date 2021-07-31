@@ -19,25 +19,25 @@ import { APIFeatures } from './utils';
 import { infoMapper } from '../utils/functions';
 import { GraphQLResolveInfo } from 'graphql';
 import { Conversation } from '../entity/Conversation.entity';
+import { ConversationRole, Participant } from '../entity/Message.entity';
+import { AuthProvider } from '../entity/AuthProvider.entity';
+import fieldsToRelations from 'graphql-fields-to-relations';
+import { AppError } from '../utils/services/AppError';
 
 @ObjectType()
 class PaginatedConversation extends PaginatedResponse(Conversation) {}
 
 @InputType()
-class InputMessage {
-  @Field(() => ID)
-  to!: string;
+class InputConversation {
   @Field({ nullable: true })
-  offset: number = 0;
-  @Field({ nullable: true })
-  limit: number = 10;
-  @Field({ nullable: true })
-  @Field({ nullable: true })
-  filter?: String;
+  title?: string;
+
+  @Field(() => [ID])
+  participants!: string[];
 }
 
 @Resolver(Conversation)
-export class MessageResolver {
+export class ConversationResolver {
   @Query(() => PaginatedConversation, { nullable: true })
   @Directive('@auth')
   async listAllMessages(
@@ -70,8 +70,52 @@ export class MessageResolver {
   @Directive('@auth')
   async createConversation(
     @Arg('args')
-    args: ApiArgs,
+    { participants, title }: InputConversation,
     @Ctx() { em, currentUser }: MyContext,
     @Info() info: GraphQLResolveInfo
-  ) {}
+  ) {
+    try {
+      const fields = fieldsToRelations(info);
+      if (!currentUser || !currentUser.verified)
+        throw new AppError('User not allowed to create conversation', '401');
+
+      const conversation = await em.getRepository(Conversation).create({
+        title,
+        owner: currentUser.id,
+      });
+
+      for (let p of participants) {
+        const auth = await em
+          .getRepository(AuthProvider)
+          .findOneOrFail({ id: p });
+
+        if (auth.id !== currentUser.id) {
+          const curPar = await em.getRepository(Participant).create({
+            conversation: conversation.id,
+            user: p,
+            owner: p,
+          });
+
+          conversation.participant.add(curPar);
+          conversation.users.add(auth);
+        }
+      }
+
+      const owner = await em.getRepository(Participant).create({
+        conversation: conversation.id,
+        user: currentUser.id,
+        type: ConversationRole.OWNER,
+        owner: currentUser.id,
+      });
+      conversation.participant.add(owner);
+      conversation.users.add(currentUser);
+      await em.persist([owner, conversation]).flush();
+
+      return await em
+        .getRepository(Conversation)
+        .findOneOrFail({ id: conversation.id }, fields);
+    } catch (error) {
+      throw new AppError(error.message, '404');
+    }
+  }
 }

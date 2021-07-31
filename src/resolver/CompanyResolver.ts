@@ -23,7 +23,7 @@ import fieldsToRelations from 'graphql-fields-to-relations';
 import { Tag } from '../entity/BaseEntity';
 
 @InputType()
-class UserInput {
+class CompanyInput {
   @Field({ nullable: true })
   id?: string;
 
@@ -47,7 +47,7 @@ export class CompanyResolver extends CompanyBaseResolver {
   @Directive('@hasRole(roles: [USER])')
   @Mutation(() => AuthProvider)
   async createCompany(
-    @Arg('input') input: UserInput,
+    @Arg('input') input: CompanyInput,
     @Ctx() { em, currentUser }: MyContext
   ) {
     try {
@@ -72,7 +72,7 @@ export class CompanyResolver extends CompanyBaseResolver {
   @Directive('@auth')
   @Mutation(() => Company)
   async updateCompany(
-    @Arg('input', { nullable: true }) input: UserInput,
+    @Arg('input', { nullable: true }) input: CompanyInput,
     @Arg('image', () => GraphQLUpload, { nullable: true }) image: FileUpload,
     @Ctx() { em, currentUser }: MyContext,
     @Info() info: GraphQLResolveInfo
