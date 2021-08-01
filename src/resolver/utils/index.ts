@@ -71,21 +71,23 @@ export async function APIFeatures({
   id?: string | null;
   fields: string[];
 }): Promise<any> {
-  let searchQuery = {};
+  let searchQuery: { [key: string]: {} } = {};
   let orderBy: any = {};
+
   if (search) {
-    let owner = {};
-    if (id) owner = { $eq: { owner: id } };
-    searchQuery = {
-      $or: [{ userName: { $re: search } }],
-      ...owner,
-    };
+    searchQuery['$or'] = [{ userName: { $re: search } }];
   }
+  if (id) searchQuery['owner'] = { $eq: id };
   if (sort) orderBy[sort.field as keyof string] = sort.order === 'ASC' ? 1 : -1;
 
   const [items, count] = await em
     .getRepository(Model)
-    .findAndCount(searchQuery, { populate: fields, orderBy, limit, offset });
+    .findAndCount(searchQuery, {
+      populate: fields,
+      orderBy,
+      limit,
+      offset,
+    });
   return {
     items,
     totalPages: Math.ceil(count / limit),

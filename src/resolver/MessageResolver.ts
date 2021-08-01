@@ -15,10 +15,13 @@ import {
 import { MyContext } from '../utils/interfaces/context.interface';
 
 import { ApiArgs, PaginatedResponse } from './input';
-import { APIFeatures } from './utils';
+import { APIFeatures, processUpload } from './utils';
 import { Message } from '../entity/Message.entity';
 import { infoMapper } from '../utils/functions';
 import { GraphQLResolveInfo } from 'graphql';
+import { FileUpload, GraphQLUpload } from 'graphql-upload';
+import { AppError } from '../utils/services/AppError';
+import fieldsToRelations from 'graphql-fields-to-relations';
 
 @ObjectType()
 class PaginatedMessage extends PaginatedResponse(Message) {}
@@ -26,14 +29,10 @@ class PaginatedMessage extends PaginatedResponse(Message) {}
 @InputType()
 class InputMessage {
   @Field(() => ID)
-  to!: string;
+  conversation!: string;
+
   @Field({ nullable: true })
-  offset: number = 0;
-  @Field({ nullable: true })
-  limit: number = 10;
-  @Field({ nullable: true })
-  @Field({ nullable: true })
-  filter?: String;
+  text?: string;
 }
 
 @Resolver(Message)
@@ -69,9 +68,41 @@ export class MessageResolver {
   @Mutation(() => Message)
   @Directive('@auth')
   async sendMessage(
-    @Arg('args')
-    args: ApiArgs,
+    @Arg('input')
+    { conversation, text }: InputMessage,
+    @Arg('image', () => [GraphQLUpload], { nullable: true })
+    attachments: [FileUpload],
+
     @Ctx() { em, currentUser }: MyContext,
     @Info() info: GraphQLResolveInfo
-  ) {}
+  ) {
+    try {
+      if (!currentUser || !currentUser.verified)
+        throw new AppError('No current Company', '404');
+
+      let images = [];
+
+      if (attachments) {
+        for (let file of attachments) {
+          const input = await processUpload(file);
+          images.push(input);
+        }
+      }
+
+      const newRelations = fieldsToRelations(info);
+
+      const newMessage = await em.getRepository(Message).create({
+        conversation,
+        text,
+        from: currentUser.id,
+        owner: currentUser.id,
+        images,
+      });
+      await em.persistAndFlush(newMessage);
+      await em.populate(newMessage, newRelations);
+      return newMessage;
+    } catch (error) {
+      throw new AppError(error.message, '404');
+    }
+  }
 }

@@ -27,12 +27,15 @@ registerEnumType(ConversationRole, {
 @ObjectType()
 @Entity()
 export class Message extends Base {
+  @Field(() => AuthProvider)
   @ManyToOne(() => AuthProvider)
   from!: AuthProvider;
 
+  @Field(() => Conversation)
   @ManyToOne(() => Conversation)
   conversation!: Conversation;
 
+  @Field(() => [DeletedMessage], { nullable: true })
   @OneToMany({
     entity: () => DeletedMessage,
     mappedBy: 'message',
@@ -41,12 +44,12 @@ export class Message extends Base {
   deletedMessages = new Collection<DeletedMessage>(this);
 
   @Field(() => [String], { nullable: true })
-  @Property({ type: ArrayType, nullable: false })
-  attachments?: [string];
+  @Property({ type: ArrayType, nullable: true })
+  attachments?: [string] = [''];
 
-  @Field()
-  @Property()
-  text!: string;
+  @Field({ nullable: true })
+  @Property({ nullable: true })
+  text?: string;
 
   @Field({ nullable: true })
   @Property({ nullable: true })

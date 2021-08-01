@@ -40,7 +40,7 @@ class InputConversation {
 export class ConversationResolver {
   @Query(() => PaginatedConversation, { nullable: true })
   @Directive('@auth')
-  async listAllMessages(
+  async listAllConversations(
     @Arg('args', {
       nullable: true,
       defaultValue: {
@@ -111,9 +111,8 @@ export class ConversationResolver {
       conversation.users.add(currentUser);
       await em.persist([owner, conversation]).flush();
 
-      return await em
-        .getRepository(Conversation)
-        .findOneOrFail({ id: conversation.id }, fields);
+      await em.populate(conversation, fields);
+      return conversation;
     } catch (error) {
       throw new AppError(error.message, '404');
     }

@@ -111,6 +111,17 @@ The javascript `Date` as string. Type represents date and time as the ISO Date s
 """
 scalar DateTime
 
+type DeletedMessage {
+  attachment: [String!]
+  createdAt: DateTime!
+  deleteAt: DateTime
+  id: ID!
+  owner: ID!
+  tags: [Tag!]!
+  text: String!
+  updatedAt: DateTime!
+}
+
 type Device {
   access: Access
   brand: DeviceBrands!
@@ -137,21 +148,29 @@ input InputConversation {
   title: String
 }
 
+input InputMessage {
+  conversation: ID!
+  text: String
+}
+
 type Message {
   attachments: [String!]
+  conversation: Conversation!
   createdAt: DateTime!
   deleteAt: DateTime
+  deletedMessages: [DeletedMessage!]
+  from: AuthProvider!
   id: ID!
   owner: ID!
   tags: [Tag!]!
-  text: String!
+  text: String
   updatedAt: DateTime!
 }
 
 type Mutation {
   createCompany(input: CompanyInput!): AuthProvider!
   createConversation(args: InputConversation!): Conversation!
-  sendMessage(args: ApiArgs!): Message!
+  sendMessage(image: [Upload!], input: InputMessage!): Message!
   signIn(input: AuthInput!): AuthAndToken!
   updateCompany(image: Upload, input: CompanyInput): Company!
   verified(code: Int!): AuthProvider!
@@ -193,6 +212,18 @@ type PaginatedConversation {
   totalPages: Int!
 }
 
+type PaginatedMessage {
+  items: [Message!]!
+  offset: Int!
+  totalPages: Int!
+}
+
+type PaginatedProductResponse {
+  items: [Product!]!
+  offset: Int!
+  totalPages: Int!
+}
+
 type Participant {
   conversation: Conversation!
   createdAt: DateTime!
@@ -216,6 +247,31 @@ type Plan {
   updatedAt: DateTime!
 }
 
+type Price {
+  name: String!
+  price: Float!
+}
+
+type Product {
+  brand: String
+  company: Company!
+  createdAt: DateTime!
+  defaultPrice: Int!
+  description: String!
+  id: ID!
+  images: String
+  listPrice: [Price!]!
+  name: String!
+  owner: ID!
+  price: Float!
+  quantity: Int
+  ratingsAverage: Float!
+  ratingsQuantity: Int!
+  stock: Boolean!
+  tags: [Tag!]!
+  updatedAt: DateTime!
+}
+
 """Gmail auth or email"""
 enum Provider {
   EMAIL
@@ -225,9 +281,12 @@ enum Provider {
 type Query {
   getAuthProvider(id: String!): AuthProvider!
   getCompany(id: String!): Company!
+  getProduct(id: String!): Product!
   listAllAuthProviders(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedAuthProviderResponse
   listAllCompanys(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedCompanyResponse
-  listAllMessages(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedConversation
+  listAllConversations(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedConversation
+  listAllMessages(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedMessage
+  listAllProducts(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedProductResponse
   login(input: AuthInputLogin!): AuthAndToken
   me: AuthProvider!
 }

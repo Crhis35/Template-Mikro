@@ -12,7 +12,6 @@ import { v4 } from 'uuid';
 
 @ObjectType()
 @InputType('TagInput')
-@Entity()
 export class Tag {
   @Field()
   subject!: string;

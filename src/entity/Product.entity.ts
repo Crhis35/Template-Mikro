@@ -1,3 +1,71 @@
+import { Entity, Property, ManyToOne } from '@mikro-orm/core';
+import { Field, Float, InputType, Int, ObjectType } from 'type-graphql';
+import { Base } from './BaseEntity';
+import { Company } from './Company.entity';
+
+@ObjectType()
+@InputType('PriceInput')
+export class Price {
+  @Field()
+  name!: string;
+
+  @Field()
+  price!: number;
+}
+
+@ObjectType()
+@Entity()
+export class Product extends Base {
+  @Field()
+  @Property({ nullable: false })
+  name!: string;
+
+  @Field()
+  @Property({ nullable: false })
+  description!: string;
+
+  @Field(() => [Price])
+  @Property({ type: Price, nullable: true })
+  listPrice!: Price[];
+
+  @Field(() => Int)
+  @Property({ columnType: 'int', nullable: false })
+  defaultPrice!: number;
+
+  @Field(() => Float)
+  @Property({ columnType: 'decimal(10,2)', nullable: false })
+  price!: number;
+
+  @Field(() => Int)
+  @Property({ columnType: 'int', nullable: false })
+  ratingsQuantity!: number;
+
+  @Field(() => Float)
+  @Property({ columnType: 'decimal(10,2)', nullable: false })
+  ratingsAverage!: number;
+
+  @Field(() => String, { nullable: true })
+  images?: [string] = [''];
+
+  @Field(() => Int, { nullable: true })
+  @Property({ columnType: 'int', nullable: true })
+  quantity?: number;
+
+  @Field(() => Boolean)
+  @Property({ nullable: false })
+  stock!: boolean;
+
+  @Field(() => String, { nullable: true })
+  @Property({ nullable: false })
+  brand?: string;
+
+  @Field(() => Company)
+  @ManyToOne(() => Company)
+  company!: Company;
+
+  // Reviews: [Review];
+}
+
 // type Price {
 //   name: String!
 //   price: Float!

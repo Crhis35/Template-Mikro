@@ -28,6 +28,7 @@ import { MessageResolver } from './resolver/MessageResolver';
 
 import path from 'path';
 import { ConversationResolver } from './resolver/ConversationResolver';
+import { ProductResolver } from './resolver/ProductResolver';
 
 const app = express();
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
@@ -77,6 +78,7 @@ const startApp = async () => {
         CompanyResolver,
         MessageResolver,
         ConversationResolver,
+        ProductResolver,
       ],
       emitSchemaFile: path.join(__dirname, './schema.graphql'),
     });
