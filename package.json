@@ -47,6 +47,7 @@
     "graphql": "^15.5.0",
     "graphql-fields-to-relations": "^1.0.4",
     "graphql-import-node": "^0.0.4",
+    "graphql-subscriptions": "^1.2.1",
     "graphql-tools": "^7.0.4",
     "graphql-upload": "^11.0.0",
     "helmet": "^4.6.0",

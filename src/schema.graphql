@@ -190,6 +190,10 @@ type MyPlan {
   user: Company!
 }
 
+type OnMessage {
+  message: Message!
+}
+
 enum Order {
   Asc
   Desc
@@ -314,6 +318,10 @@ enum Role {
 input SortBy {
   field: String!
   order: Order!
+}
+
+type Subscription {
+  onCreateMessage(conversation: ID!): OnMessage!
 }
 
 type Tag {

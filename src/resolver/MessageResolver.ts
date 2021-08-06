@@ -10,6 +10,11 @@ import {
   Field,
   InputType,
   ID,
+  Subscription,
+  Root,
+  Args,
+  PubSub,
+  Publisher,
 } from 'type-graphql';
 
 import { MyContext } from '../utils/interfaces/context.interface';
@@ -33,6 +38,11 @@ class InputMessage {
 
   @Field({ nullable: true })
   text?: string;
+}
+@ObjectType()
+class OnMessage {
+  @Field(() => Message)
+  message?: Message;
 }
 
 @Resolver(Message)
@@ -74,7 +84,8 @@ export class MessageResolver {
     attachments: [FileUpload],
 
     @Ctx() { em, currentUser }: MyContext,
-    @Info() info: GraphQLResolveInfo
+    @Info() info: GraphQLResolveInfo,
+    @PubSub('ONCREATEMESSAGE') publish: Publisher<Message>
   ) {
     try {
       if (!currentUser || !currentUser.verified)
@@ -100,7 +111,25 @@ export class MessageResolver {
       });
       await em.persistAndFlush(newMessage);
       await em.populate(newMessage, newRelations);
+
+      await publish(newMessage);
       return newMessage;
+    } catch (error) {
+      throw new AppError(error.message, '404');
+    }
+  }
+
+  @Subscription({
+    topics: ['ONCREATEMESSAGE', 'ONUPDATEMESSAGE', 'ONDELETEMESSAGE'],
+  })
+  onCreateMessage(
+    @Root() message: Message,
+    @Arg('conversation', () => ID) conversationID: string
+  ): OnMessage {
+    try {
+      if (message.conversation.id === conversationID) {
+        return { message };
+      } else return {};
     } catch (error) {
       throw new AppError(error.message, '404');
     }
