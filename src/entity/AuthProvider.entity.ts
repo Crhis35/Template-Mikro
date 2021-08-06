@@ -35,6 +35,7 @@ export enum DeviceBrands {
   NOKIA = 'NOKIA',
   HUAWEI = 'HUAWEI',
   BLACKBERRY = 'BLACKBERRY',
+  OTHER = 'OTHER',
 }
 
 registerEnumType(Role, {

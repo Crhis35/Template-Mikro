@@ -124,7 +124,7 @@ type DeletedMessage {
 
 type Device {
   access: Access
-  brand: DeviceBrands!
+  brand: DeviceBrands
   createdAt: DateTime!
   id: ID!
   owner: ID!
@@ -139,6 +139,7 @@ enum DeviceBrands {
   BLACKBERRY
   HUAWEI
   NOKIA
+  OTHER
   SAMSUNG
   XIAOMI
 }

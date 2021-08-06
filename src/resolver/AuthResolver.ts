@@ -53,9 +53,8 @@ export class AuthProviderResolver extends AuthProviderBaseResolver {
       const userAgent = req.get('User-Agent') || '';
       const result = detector.detect(userAgent);
       const auth = await em.getRepository(AuthProvider).create(input);
-
       const device = await em.getRepository(Device).create({
-        brand: result.device.brand,
+        brand: result.device.brand || 'OTHER',
         user: auth.id,
         owner: auth.id,
       });
