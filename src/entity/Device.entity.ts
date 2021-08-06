@@ -7,9 +7,9 @@ import { Base } from './BaseEntity';
 @ObjectType()
 @Entity()
 export class Device extends Base {
-  @Field(() => DeviceBrands)
-  @Enum({ items: () => DeviceBrands })
-  brand!: DeviceBrands;
+  @Field(() => DeviceBrands, { nullable: true })
+  @Enum({ items: () => DeviceBrands, nullable: true })
+  brand?: DeviceBrands;
 
   @Field(() => AuthProvider)
   @ManyToOne(() => AuthProvider)
