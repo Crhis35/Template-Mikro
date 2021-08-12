@@ -10,6 +10,7 @@ import {
   Int,
   Info,
   FieldResolver,
+  Authorized,
 } from 'type-graphql';
 
 import { v4 } from 'uuid';
@@ -90,7 +91,7 @@ export class AuthProviderResolver extends AuthProviderBaseResolver {
   // }
 
   @Query(() => AuthProvider)
-  @Directive('@auth')
+  @Authorized()
   async me(@Ctx() { currentUser }: MyContext) {
     return currentUser;
   }
@@ -103,7 +104,7 @@ export class AuthProviderResolver extends AuthProviderBaseResolver {
     @Info() info: GraphQLResolveInfo
   ) {
     try {
-      const relationPaths: string[] = fieldsToRelations(info).filter(
+      const relationPaths: string[] = fieldsToRelations(info as any).filter(
         (field) => field !== 'auth'
       );
       const newRelations = relationPaths.map((word) => {
@@ -127,7 +128,7 @@ export class AuthProviderResolver extends AuthProviderBaseResolver {
   }
 
   @Mutation(() => AuthProvider)
-  @Directive('@auth')
+  @Authorized()
   async verified(
     @Arg('code', () => Int)
     code: number,

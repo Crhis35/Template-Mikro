@@ -63,7 +63,7 @@ export function createBaseResolver<T extends ClassType>(
       @Info() info: GraphQLResolveInfo
     ) {
       try {
-        const relationPaths: string[] = fieldsToRelations(info);
+        const relationPaths: string[] = fieldsToRelations(info as any);
 
         return await await em
           .getRepository(objectTypeCls)

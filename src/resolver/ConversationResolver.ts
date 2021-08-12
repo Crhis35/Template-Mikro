@@ -10,6 +10,7 @@ import {
   Field,
   InputType,
   ID,
+  Authorized,
 } from 'type-graphql';
 
 import { MyContext } from '../utils/interfaces/context.interface';
@@ -39,7 +40,7 @@ class InputConversation {
 @Resolver(Conversation)
 export class ConversationResolver {
   @Query(() => PaginatedConversation, { nullable: true })
-  @Directive('@auth')
+  @Authorized()
   async listAllConversations(
     @Arg('args', {
       nullable: true,
@@ -67,7 +68,7 @@ export class ConversationResolver {
   }
 
   @Mutation(() => Conversation)
-  @Directive('@auth')
+  @Authorized()
   async createConversation(
     @Arg('args')
     { participants, title }: InputConversation,
@@ -75,7 +76,7 @@ export class ConversationResolver {
     @Info() info: GraphQLResolveInfo
   ) {
     try {
-      const fields = fieldsToRelations(info);
+      const fields = fieldsToRelations(info as any);
       if (!currentUser || !currentUser.verified)
         throw new AppError('User not allowed to create conversation', '401');
 

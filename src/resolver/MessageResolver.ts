@@ -15,6 +15,7 @@ import {
   Args,
   PubSub,
   Publisher,
+  Authorized,
 } from 'type-graphql';
 
 import { MyContext } from '../utils/interfaces/context.interface';
@@ -48,7 +49,7 @@ class OnMessage {
 @Resolver(Message)
 export class MessageResolver {
   @Query(() => PaginatedMessage, { nullable: true })
-  @Directive('@auth')
+  @Authorized()
   async listAllMessages(
     @Arg('args', {
       nullable: true,
@@ -56,27 +57,49 @@ export class MessageResolver {
         search: '',
         offset: 0,
         limit: 10,
-        sort: null,
+        sort: {
+          order: 'DESC',
+          field: 'createdAt',
+        },
         filter: '',
       },
     })
-    args: ApiArgs,
-    @Ctx() { em, currentUser }: MyContext,
+    { search, sort, limit, offset, filter }: ApiArgs,
+    @Arg('conversation', () => ID) conversationID: string,
+    @Ctx() { em }: MyContext,
     @Info() info: GraphQLResolveInfo
   ) {
     const newRelations = infoMapper(info, 'items');
-    const id = currentUser ? currentUser.id : null;
-    return await APIFeatures({
-      Model: Message,
-      em,
-      args,
-      id,
-      fields: newRelations,
-    });
+    let searchQuery: {
+      [key: string]: {};
+    } = {
+      conversation: { $eq: conversationID },
+    };
+    let orderBy: any = {};
+
+    if (search) {
+      searchQuery['$or'] = [{ text: { $re: search } }];
+    }
+    if (sort)
+      orderBy[sort.field as keyof string] = sort.order === 'ASC' ? 1 : -1;
+
+    const [items, count] = await em
+      .getRepository(Message)
+      .findAndCount(searchQuery, {
+        populate: newRelations,
+        orderBy,
+        limit,
+        offset,
+      });
+    return {
+      items,
+      totalPages: Math.ceil(count / limit),
+      offset,
+    };
   }
 
   @Mutation(() => Message)
-  @Directive('@auth')
+  @Authorized()
   async sendMessage(
     @Arg('input')
     { conversation, text }: InputMessage,
@@ -100,7 +123,7 @@ export class MessageResolver {
         }
       }
 
-      const newRelations = fieldsToRelations(info);
+      const newRelations = fieldsToRelations(info as any);
 
       const newMessage = await em.getRepository(Message).create({
         conversation,

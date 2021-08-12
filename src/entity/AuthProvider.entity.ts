@@ -22,6 +22,7 @@ export enum Role {
   ADMIN = 'Admin',
   OWNER = 'Owner',
   USER = 'User',
+  STORE = 'Store',
 }
 export enum Provider {
   EMAIL = 'Email',
@@ -153,7 +154,9 @@ export class AuthProvider extends Base {
   @BeforeCreate()
   async generateUuid() {
     this.owner = this.id;
-    this.password = await bycript.hash(this.password, 12);
+    if (this.password) {
+      this.password = await bycript.hash(this.password, 12);
+    }
     this.verifiedCode = ~~(Math.random() * (99999 - 10000) + 10000);
   }
 

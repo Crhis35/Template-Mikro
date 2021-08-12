@@ -1,6 +1,5 @@
-import { SchemaDirectiveVisitor } from 'apollo-server-express';
-import { defaultFieldResolver } from 'graphql';
 import jwt from 'jsonwebtoken';
+import { AuthChecker } from 'type-graphql';
 import { AuthProvider } from '../entity/AuthProvider.entity';
 import { environment } from '../environment';
 import { MyContext } from '../utils/interfaces/context.interface';
@@ -17,6 +16,8 @@ export const ensureAuthenticated = async (ctx: MyContext) => {
     token = req.headers.authorization.split(' ')[1];
   } else if (req.cookies.jwt) {
     token = req.cookies.jwt;
+  } else if (req.headers.bearer) {
+    token = req.headers.bearer;
   }
   if (!token) {
     throw new AppError(
@@ -36,14 +37,29 @@ export const ensureAuthenticated = async (ctx: MyContext) => {
   ctx.currentUser = currUser;
 };
 
-export class AuthDirective extends SchemaDirectiveVisitor {
-  visitFieldDefinition(field: any) {
-    const { resolve = defaultFieldResolver } = field;
+// create auth checker function
+export const authChecker: AuthChecker<MyContext> = async (
+  { context },
+  roles
+) => {
+  await ensureAuthenticated(context);
+  const user = context.currentUser;
 
-    field.resolve = async function (...args: any) {
-      const [, , context] = args;
-      await ensureAuthenticated(context);
-      return resolve.apply(this, args);
-    };
+  if (roles.length === 0) {
+    // if `@Authorized()`, check only if user exists
+    return user !== undefined;
   }
-}
+  // there are some roles defined now
+
+  if (!user) {
+    // and if no user, restrict access
+    return false;
+  }
+  if (user.role.some((role) => roles.includes(role))) {
+    // grant access if the roles overlap
+    return true;
+  }
+
+  // no roles matched, restrict access
+  return false;
+};

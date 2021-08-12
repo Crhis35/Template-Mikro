@@ -3,25 +3,27 @@ import 'reflect-metadata';
 import { environment } from './environment';
 import { graphqlUploadExpress } from 'graphql-upload';
 import { buildSchema } from 'type-graphql';
-import { Dictionary, IPrimaryKey, MikroORM } from '@mikro-orm/core';
+import { MikroORM } from '@mikro-orm/core';
 import express from 'express';
 import * as http from 'http';
 
-import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
-import xss from 'x-xss-protection';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 
-import { ApolloServer, SchemaDirectiveVisitor } from 'apollo-server-express';
+import { ApolloServer } from 'apollo-server-express';
+
+import { execute, subscribe } from 'graphql';
+import {
+  ConnectionContext,
+  SubscriptionServer,
+} from 'subscriptions-transport-ws';
 
 import Consola from 'consola';
 import { join } from 'path';
 import ormConfig from './orm.config';
 import { AuthProviderResolver } from './resolver/AuthResolver';
 import { MyContext } from './utils/interfaces/context.interface';
-import { AuthDirective } from './directives/Auth';
-import { HasRoleDirective } from './directives/HasRole';
 import { CompanyResolver } from './resolver/CompanyResolver';
 import { AppError } from './utils/services/AppError';
 import { MessageResolver } from './resolver/MessageResolver';
@@ -29,16 +31,18 @@ import { MessageResolver } from './resolver/MessageResolver';
 import path from 'path';
 import { ConversationResolver } from './resolver/ConversationResolver';
 import { ProductResolver } from './resolver/ProductResolver';
+import SearchResolver from './resolver/SearchResolver';
+import { authChecker } from './directives/Auth';
 
 const app = express();
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+// app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-//Set secure http headers
-app.use(
-  helmet({
-    contentSecurityPolicy: environment.env === 'production' ? undefined : false,
-  })
-);
+// //Set secure http headers
+// app.use(
+//   helmet({
+//     contentSecurityPolicy: environment.env === 'production' ? undefined : false,
+//   })
+// );
 
 app.use(cookieParser()); //Limit request from api
 
@@ -46,10 +50,8 @@ app.use(cookieParser()); //Limit request from api
 app.use(mongoSanitize());
 
 // Data sanatization against XSS
-app.use(xss());
 app.use(compression());
 app.disable('x-powered-by');
-app.use(express.json({ limit: '20kb' }));
 app.use(express.static(join(__dirname, './images')));
 app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
 
@@ -79,23 +81,15 @@ const startApp = async () => {
         MessageResolver,
         ConversationResolver,
         ProductResolver,
+        SearchResolver,
       ],
       emitSchemaFile: path.join(__dirname, './schema.graphql'),
-    });
-
-    SchemaDirectiveVisitor.visitSchemaDirectives(schema, {
-      auth: AuthDirective,
-      hasRole: HasRoleDirective,
+      authChecker,
     });
 
     const server = new ApolloServer({
       schema,
-      uploads: false,
       introspection: environment.apollo.introspection,
-      playground: environment.apollo.playground,
-      subscriptions: {
-        path: '/subscriptions',
-      },
       context: ({ req, res }) =>
         ({
           req: req,
@@ -103,11 +97,36 @@ const startApp = async () => {
           em: orm.em.fork(),
         } as MyContext),
     });
+    await server.start();
     // Apply Apollo-Expr,cors: trueess-Server Middlware to express application
     server.applyMiddleware({ app, cors: true });
 
     const httpServer = http.createServer(app);
-    server.installSubscriptionHandlers(httpServer);
+    const subscriptionServer = SubscriptionServer.create(
+      {
+        schema,
+        execute,
+        subscribe,
+        async onConnect(
+          connectionParams: Object,
+          webSocket: WebSocket,
+          context: ConnectionContext
+        ) {
+          // If an object is returned here, it will be passed as the `context`
+          // argument to your subscription resolvers.
+        },
+      },
+      {
+        // This is the `httpServer` we created in a previous step.
+        server: httpServer,
+        path: server.graphqlPath,
+      }
+    );
+
+    // ['SIGINT', 'SIGTERM'].forEach((signal) => {
+    //   process.on(signal, () => subscriptionServer.close());
+    // });
+
     httpServer.listen(environment.port, () =>
       Consola.success({
         badge: true,

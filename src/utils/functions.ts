@@ -66,7 +66,7 @@ export const setEmptyObject = (object: { [key: string]: any } = {}) => {
 };
 
 export const infoMapper = (info: GraphQLResolveInfo, name: string) => {
-  const relationPaths: string[] = fieldsToRelations(info).filter(
+  const relationPaths: string[] = fieldsToRelations(info as any).filter(
     (field) => field !== name
   );
 

@@ -4,10 +4,10 @@ import {
   Arg,
   Field,
   Ctx,
-  Directive,
   InputType,
   Info,
   Int,
+  Authorized,
 } from 'type-graphql';
 
 import { AuthProvider } from '../entity/AuthProvider.entity';
@@ -44,7 +44,7 @@ const CompanyBaseResolver = createBaseResolver('Company', Company);
 
 @Resolver(Company)
 export class CompanyResolver extends CompanyBaseResolver {
-  @Directive('@hasRole(roles: [USER])')
+  @Authorized('[USER]')
   @Mutation(() => AuthProvider)
   async createCompany(
     @Arg('input') input: CompanyInput,
@@ -69,7 +69,7 @@ export class CompanyResolver extends CompanyBaseResolver {
     }
   }
 
-  @Directive('@auth')
+  @Authorized()
   @Mutation(() => Company)
   async updateCompany(
     @Arg('input', { nullable: true }) input: CompanyInput,
@@ -85,7 +85,7 @@ export class CompanyResolver extends CompanyBaseResolver {
 
       const { id } = input;
 
-      const relationPaths: string[] = fieldsToRelations(info);
+      const relationPaths: string[] = fieldsToRelations(info as any);
 
       const company = await em
         .getRepository(Company)

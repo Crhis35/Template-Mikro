@@ -9,7 +9,13 @@ import {
 } from 'type-graphql';
 import { Provider, Role } from '../../entity/AuthProvider.entity';
 import { Base } from '../../entity/BaseEntity';
-
+enum Order {
+  Asc = 'ASC',
+  Desc = 'DESC',
+}
+registerEnumType(Order, {
+  name: 'Order',
+});
 @InputType()
 export class AuthInput {
   @Field()
@@ -30,14 +36,6 @@ export class AuthInputLogin {
   @Field()
   password!: string;
 }
-
-enum Order {
-  Asc = 'ASC',
-  Desc = 'DESC',
-}
-registerEnumType(Order, {
-  name: 'Order',
-});
 
 @InputType()
 class SortBy {

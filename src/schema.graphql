@@ -277,6 +277,8 @@ type Product {
   updatedAt: DateTime!
 }
 
+union ProductComapnyResult = Company | Product
+
 """Gmail auth or email"""
 enum Provider {
   EMAIL
@@ -290,10 +292,11 @@ type Query {
   listAllAuthProviders(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedAuthProviderResponse
   listAllCompanys(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedCompanyResponse
   listAllConversations(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedConversation
-  listAllMessages(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedMessage
+  listAllMessages(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: {field: "createdAt", order: Desc}}, conversation: ID!): PaginatedMessage
   listAllProducts(args: ApiArgs = {filter: "", limit: 10, offset: 0, search: "", sort: null}): PaginatedProductResponse
   login(input: AuthInputLogin!): AuthAndToken
   me: AuthProvider!
+  searchCompanyProduct(phrase: String!): [ProductComapnyResult!]!
 }
 
 type Report {
@@ -312,6 +315,7 @@ type Report {
 enum Role {
   ADMIN
   OWNER
+  STORE
   USER
 }
 
