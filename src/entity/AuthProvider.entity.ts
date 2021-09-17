@@ -1,5 +1,5 @@
 import { IsDate, IsEmail } from 'class-validator';
-import { Field, Int, ObjectType } from 'type-graphql';
+import { Field, InputType, Int, ObjectType } from 'type-graphql';
 import { registerEnumType } from 'type-graphql';
 import bycript from 'bcrypt';
 
@@ -59,6 +59,19 @@ registerEnumType(Provider, {
 });
 
 @ObjectType()
+@InputType('InputPhoneNumber')
+export class PhoneNumber {
+  @Field()
+  countryCode!: string;
+
+  @Field()
+  number!: string;
+
+  @Field({ nullable: true })
+  extension?: string;
+}
+
+@ObjectType()
 @Entity()
 export class AuthProvider extends Base {
   @Field()
@@ -81,6 +94,10 @@ export class AuthProvider extends Base {
   @Field(() => Int)
   @Property()
   verifiedCode!: Number;
+
+  @Field(() => PhoneNumber)
+  @Property({ type: PhoneNumber })
+  phoneNumber?: PhoneNumber;
 
   @Field()
   @Property({

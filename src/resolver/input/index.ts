@@ -7,7 +7,7 @@ import {
   ObjectType,
   registerEnumType,
 } from 'type-graphql';
-import { Provider, Role } from '../../entity/AuthProvider.entity';
+import { PhoneNumber, Provider, Role } from '../../entity/AuthProvider.entity';
 import { Base } from '../../entity/BaseEntity';
 enum Order {
   Asc = 'ASC',
@@ -28,6 +28,9 @@ export class AuthInput {
   provider?: Provider;
   @Field(() => [Role], { nullable: true })
   role?: [Role];
+
+  @Field(() => PhoneNumber, { nullable: true })
+  phoneNumber?: PhoneNumber;
 }
 @InputType()
 export class AuthInputLogin {
