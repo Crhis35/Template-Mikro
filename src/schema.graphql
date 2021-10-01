@@ -56,7 +56,7 @@ type AuthProvider {
   password: String
   passwordChangedAt: DateTime!
   passwordResetExpires: DateTime!
-  phoneNumber: PhoneNumber!
+  phoneNumber: PhoneNumber
   provider: Provider!
   reports: [Report!]
   role: [Role!]!

@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import { AuthChecker } from 'type-graphql';
 import { AuthProvider } from '../entity/AuthProvider.entity';
 import { environment } from '../environment';
@@ -11,7 +11,7 @@ export const ensureAuthenticated = async (ctx: MyContext) => {
   let token;
   if (
     req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
+    req.headers.authorization.startsWith('bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
   } else if (req.cookies.jwt) {
@@ -27,7 +27,6 @@ export const ensureAuthenticated = async (ctx: MyContext) => {
   }
   //2) validate token
   const decoded = <any>jwt.verify(token, environment.jwtSecret);
-
   //3) check if user still exits
   const currUser = await ctx.em
     .getRepository(AuthProvider)

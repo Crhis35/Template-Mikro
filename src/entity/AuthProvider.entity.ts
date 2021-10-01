@@ -11,6 +11,7 @@ import {
   OneToMany,
   Collection,
   ManyToMany,
+  JsonType,
 } from '@mikro-orm/core';
 import { Base } from './BaseEntity';
 import { Company } from './Company.entity';
@@ -95,8 +96,8 @@ export class AuthProvider extends Base {
   @Property()
   verifiedCode!: Number;
 
-  @Field(() => PhoneNumber)
-  @Property({ type: PhoneNumber })
+  @Field(() => PhoneNumber, { nullable: true })
+  @Property({ type: JsonType, nullable: true })
   phoneNumber?: PhoneNumber;
 
   @Field()
